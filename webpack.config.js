@@ -15,6 +15,23 @@ module.exports = {
 				exclude: /node_modules/,
 				use: "babel-loader",
 			},
+			{
+				test: /\.module\.css$/,
+				use: [
+					"style-loader",
+					{
+						loader: "css-loader",
+						options: {
+							modules: true,
+						},
+					},
+				],
+			},
+			{
+				test: /\.css$/,
+				exclude: /\.module\.css$/,
+				use: ["style-loader", "css-loader"],
+			},
 		],
 	},
 	resolve: {
@@ -29,6 +46,7 @@ module.exports = {
 		static: "./dist",
 		hot: true,
 		port: 3000,
+		historyApiFallback: true,
 	},
 	mode: "development",
 };
