@@ -1,5 +1,4 @@
 import axios from "axios";
-import dotenv from "dotenv";
 
 const API_KEY = process.env.ALPHAVANTAGE_API_KEY;
 const BASE_URL = "https://www.alphavantage.co/query";

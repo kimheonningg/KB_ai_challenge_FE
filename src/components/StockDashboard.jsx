@@ -35,13 +35,6 @@ const StockDashboard = () => {
 				color: "white",
 			}}
 		>
-			<h1 style={{ fontSize: "24px", marginBottom: "16px" }}>
-				📊 실시간 주식 대시보드{" "}
-				<span style={{ fontSize: "14px", color: "#aaa" }}>
-					Alpha Vantage API 기반
-				</span>
-			</h1>
-
 			<div style={{ display: "flex", gap: "8px", marginBottom: "20px" }}>
 				<input
 					type="text"
@@ -54,7 +47,7 @@ const StockDashboard = () => {
 					onClick={addStock}
 					style={{ padding: "8px 12px", background: "green", color: "white" }}
 				>
-					추가
+					검색
 				</button>
 			</div>
 

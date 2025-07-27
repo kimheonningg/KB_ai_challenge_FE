@@ -6,7 +6,7 @@ const StockInfo = ({ stock, onRemove }) => {
 	const changePercent = stock["10. change percent"];
 
 	const isUp = change > 0;
-	const changeColor = isUp ? "blue" : "red";
+	const changeColor = isUp ? "red" : "blue";
 
 	return (
 		<div
