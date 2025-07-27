@@ -1,4 +1,5 @@
 import React from "react";
+import StockDashboard from "../components/StockDashboard";
 
 const styles = {
 	container: {
@@ -53,7 +54,8 @@ const Home = () => {
 			<div style={styles.header}>
 				{/* <img src="/logo.png" alt="KB Logo" style={styles.logo} /> */}
 				<h1 style={styles.title}>
-					Financial AI Challenge <span style={styles.team}>Team 피카츄⚡</span>
+					KB Future Finance A.I. Challenge
+					<span style={styles.team}>Team 피카츄⚡</span>
 				</h1>
 				<p style={styles.subtitle}>AI 기반 주식 분석 플랫폼</p>
 			</div>
@@ -63,6 +65,7 @@ const Home = () => {
 				<span style={styles.tag}>🟣 재무제표 분석</span>
 				<span style={styles.tag}>⚡ 뉴스와 재무제표 통합 분석</span>
 			</div>
+			<StockDashboard />
 		</div>
 	);
 };
