@@ -1,15 +1,7 @@
 import React, { useState } from "react";
 import { fetchQuote, searchSymbol } from "../utils/alphavantage";
 import StockInfo from "./StockInfo";
-
-// FIXME: replace using searchSymbol
-const MOCK_SUGGESTIONS = [
-	{ symbol: "AAPL", name: "Apple Inc." },
-	{ symbol: "TSLA", name: "Tesla Inc." },
-	{ symbol: "NVDA", name: "NVIDIA Corporation" },
-	{ symbol: "GOOGL", name: "Alphabet Inc." },
-	{ symbol: "AMZN", name: "Amazon.com Inc." },
-];
+import { MOCK_SUGGESTIONS } from "../const";
 
 const StockDashboard = () => {
 	const [symbolInput, setSymbolInput] = useState("");
@@ -89,7 +81,7 @@ const StockDashboard = () => {
 						paddingLeft: "0.75rem",
 						boxShadow: "0 0 6px rgba(255,255,255,0.05)",
 						flex: 1,
-						maxWidth: "800px",
+						maxWidth: "960px",
 					}}
 				>
 					<span
@@ -120,12 +112,16 @@ const StockDashboard = () => {
 								position: "absolute",
 								top: "100%",
 								left: 0,
-								width: "100%",
-								background: "#1e293b",
+								right: 0,
+								// width: "100%",
+								background: "rgba(15, 23, 42, 0.7)",
 								border: "1px solid #334155",
 								borderTop: "none",
 								borderRadius: "0 0 8px 8px",
 								zIndex: 10,
+								backdropFilter: "blur(2px)",
+								boxShadow: "0 4px 10px rgba(0, 0, 0, 0.3)",
+								overflow: "hidden",
 							}}
 						>
 							{suggestions.map((s) => (
@@ -137,6 +133,14 @@ const StockDashboard = () => {
 										cursor: "pointer",
 										color: "#e2e8f0",
 										borderTop: "1px solid #334155",
+									}}
+									onMouseEnter={(e) => {
+										e.currentTarget.style.background = "#334155";
+										e.currentTarget.style.color = "#e2e8f0";
+									}}
+									onMouseLeave={(e) => {
+										e.currentTarget.style.background = "transparent";
+										e.currentTarget.style.color = "#94a3b8";
 									}}
 								>
 									<b>{s.symbol}</b> – {s.name}

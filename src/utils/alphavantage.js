@@ -25,6 +25,7 @@ export async function fetchQuote(symbol) {
 	return response.data["Global Quote"];
 }
 
+// 무료 버전 API 사용시 한계가 있음 ㅠㅠ
 export async function searchSymbol(keyword) {
 	const response = await axios.get(BASE_URL, {
 		params: {
