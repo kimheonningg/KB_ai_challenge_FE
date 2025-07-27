@@ -24,3 +24,21 @@ export async function fetchQuote(symbol) {
 	});
 	return response.data["Global Quote"];
 }
+
+export async function searchSymbol(keyword) {
+	const response = await axios.get(BASE_URL, {
+		params: {
+			function: "SYMBOL_SEARCH",
+			keywords: keyword,
+			apikey: API_KEY,
+		},
+	});
+
+	const matches = response.data.bestMatches;
+
+	if (!matches || matches.length === 0) {
+		return [];
+	}
+
+	return matches;
+}
