@@ -2,10 +2,10 @@ import React, { useState } from "react";
 
 const FeatureTabs = ({ activeTab, setActiveTab }) => {
 	const tabs = [
-		{ key: "stock", label: "실시간 주식 대시보드", icon: "📊" },
-		{ key: "news", label: "실시간 뉴스 분석", icon: "🟢" },
-		{ key: "reports", label: "재무제표 분석", icon: "🟣" },
-		{ key: "combined", label: "뉴스와 재무제표 통합 분석", icon: "⚡" },
+		{ key: "stock", label: "실시간 주식 대시보드", icon: "insights" },
+		{ key: "news", label: "실시간 뉴스 분석", icon: "feed" },
+		{ key: "reports", label: "재무제표 분석", icon: "table_chart" },
+		{ key: "combined", label: "뉴스와 재무제표 통합 분석", icon: "bolt" },
 	];
 
 	const [hoverTab, setHoverTab] = useState(null);
@@ -13,7 +13,11 @@ const FeatureTabs = ({ activeTab, setActiveTab }) => {
 	return (
 		<div style={{ margin: "1rem", fontFamily: "'Inter', sans-serif" }}>
 			<div
-				style={{ display: "flex", borderRadius: "0.5rem", overflow: "hidden" }}
+				style={{
+					display: "flex",
+					borderRadius: "0.5rem",
+					overflow: "hidden",
+				}}
 			>
 				{tabs.map((tab) => {
 					const isActive = activeTab === tab.key;
@@ -47,7 +51,12 @@ const FeatureTabs = ({ activeTab, setActiveTab }) => {
 								boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
 							}}
 						>
-							<span style={{ marginRight: "0.5rem" }}>{tab.icon}</span>
+							<span
+								className="material-icons"
+								style={{ marginRight: "0.5rem", verticalAlign: "middle" }}
+							>
+								{tab.icon}
+							</span>
 							{tab.label}
 						</div>
 					);
