@@ -12,7 +12,7 @@ const styles = {
 };
 
 const Home = () => {
-	const [activeTab, setActiveTab] = useState("portfolio");
+	const [activeTab, setActiveTab] = useState("stock");
 	return (
 		<div style={styles.container}>
 			<Header activeTab={activeTab} setActiveTab={setActiveTab} />

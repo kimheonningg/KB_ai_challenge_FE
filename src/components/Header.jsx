@@ -3,6 +3,7 @@ import FeatureTabs from "./FeatureTabs";
 
 const styles = {
 	header: {
+		position: "relative",
 		background: "linear-gradient(to right, #0d1a33, #1a2b4d)",
 		paddingTop: "2rem",
 		paddingBottom: "1px",
@@ -29,10 +30,49 @@ const styles = {
 		fontSize: "0.85rem",
 		marginLeft: "0.5rem",
 	},
+	iconContainer: {
+		position: "absolute",
+		top: "1rem",
+		right: "1.5rem",
+		display: "flex",
+		gap: "0.3rem",
+	},
+	icon: {
+		cursor: "pointer",
+		color: "white",
+		fontSize: "1.9rem",
+		transition: "transform 0.2s",
+	},
 };
 
 const Header = ({ activeTab, setActiveTab }) => (
 	<div style={styles.header}>
+		<div style={styles.iconContainer}>
+			<span
+				className="material-icons"
+				style={styles.icon}
+				onClick={() => {
+					const isLoggedIn = localStorage.getItem("authToken");
+					if (!isLoggedIn) {
+						window.location.href = "/login"; // TODO
+					} else {
+						// TODO
+					}
+				}}
+			>
+				account_circle
+			</span>
+			<span
+				className="material-icons"
+				style={styles.icon}
+				onClick={() => {
+					window.location.href = "/about";
+				}}
+			>
+				info
+			</span>
+		</div>
+
 		<h1 style={styles.title}>AI 기반 주식 분석 플랫폼</h1>
 		<p style={styles.subtitle}>
 			KB Future Finance A.I. Challenge
