@@ -4,6 +4,7 @@ import Home from "./pages/Home";
 import About from "./pages/About";
 import Login from "./pages/Login";
 import UserProfile from "./pages/UserProfile";
+import Register from "./pages/Register";
 
 const App = () => (
 	<Router>
@@ -12,6 +13,7 @@ const App = () => (
 			<Route path="/about" element={<About />} />
 			<Route path="/login" element={<Login />} />
 			<Route path="/user_profile" element={<UserProfile />} />
+			<Route path="/register" element={<Register />} />
 		</Routes>
 	</Router>
 );

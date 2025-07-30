@@ -1,21 +1,35 @@
 import React, { useState } from "react";
-import { handleLogin } from "../utils/auth";
+import { handleRegister } from "../utils/auth";
 
-const Login = () => {
-	const [userId, setUserId] = useState("");
-	const [password, setPassword] = useState("");
+const Register = () => {
+	const [form, setForm] = useState({
+		email: "",
+		phoneNum: "",
+		firstName: "",
+		lastName: "",
+		userId: "",
+		password: "",
+	});
 	const [error, setError] = useState("");
+	const [success, setSuccess] = useState("");
+
+	const handleChange = (e) => {
+		const { name, value } = e.target;
+		setForm((prev) => ({ ...prev, [name]: value }));
+	};
 
 	const onSubmit = (e) => {
 		e.preventDefault();
-		handleLogin({
-			userId,
-			password,
+		setError("");
+		setSuccess("");
+
+		handleRegister({
+			form,
 			onSuccess: () => {
-				window.location.href = "/";
+				setSuccess("회원가입이 완료되었습니다! 로그인 페이지로 이동해주세요.");
 			},
-			onError: (errMsg) => {
-				setError(errMsg);
+			onError: (msg) => {
+				setError(msg);
 			},
 		});
 	};
@@ -44,7 +58,7 @@ const Login = () => {
 					color: "#f8fafc",
 				}}
 				onClick={() => {
-					window.location.href = "/";
+					window.history.back();
 				}}
 			>
 				arrow_back
@@ -57,7 +71,7 @@ const Login = () => {
 					borderRadius: "1rem",
 					boxShadow: "0 10px 30px rgba(0,0,0,0.25)",
 					width: "100%",
-					maxWidth: "420px",
+					maxWidth: "460px",
 					border: "1px solid rgba(255,255,255,0.07)",
 				}}
 			>
@@ -75,47 +89,47 @@ const Login = () => {
 					}}
 				>
 					<span className="material-icons" style={{ fontSize: "2rem" }}>
-						person
+						app_registration
 					</span>
-					로그인
+					회원가입
 				</h2>
 
 				<form
 					onSubmit={onSubmit}
 					style={{ display: "flex", flexDirection: "column" }}
 				>
-					<input
-						type="text"
-						placeholder="아이디"
-						value={userId}
-						onChange={(e) => setUserId(e.target.value)}
-						required
-						style={{
-							marginBottom: "1rem",
-							padding: "0.85rem 1rem",
-							borderRadius: "0.5rem",
-							border: "1px solid #334155",
-							backgroundColor: "#0f172a",
-							color: "#f1f5f9",
-							fontSize: "1rem",
-						}}
-					/>
-					<input
-						type="password"
-						placeholder="비밀번호"
-						value={password}
-						onChange={(e) => setPassword(e.target.value)}
-						required
-						style={{
-							marginBottom: "1.5rem",
-							padding: "0.85rem 1rem",
-							borderRadius: "0.5rem",
-							border: "1px solid #334155",
-							backgroundColor: "#0f172a",
-							color: "#f1f5f9",
-							fontSize: "1rem",
-						}}
-					/>
+					{[
+						{ name: "email", placeholder: "이메일", type: "email" },
+						{
+							name: "phoneNum",
+							placeholder: "전화번호 ( ' - ' 없이 숫자만 입력 )",
+							type: "text",
+						},
+						{ name: "firstName", placeholder: "이름", type: "text" },
+						{ name: "lastName", placeholder: "성", type: "text" },
+						{ name: "userId", placeholder: "아이디", type: "text" },
+						{ name: "password", placeholder: "비밀번호", type: "password" },
+					].map(({ name, placeholder, type }) => (
+						<input
+							key={name}
+							name={name}
+							type={type}
+							placeholder={placeholder}
+							value={form[name]}
+							onChange={handleChange}
+							required
+							style={{
+								marginBottom: "1rem",
+								padding: "0.85rem 1rem",
+								borderRadius: "0.5rem",
+								border: "1px solid #334155",
+								backgroundColor: "#0f172a",
+								color: "#f1f5f9",
+								fontSize: "1rem",
+							}}
+						/>
+					))}
+
 					<button
 						type="submit"
 						style={{
@@ -130,8 +144,9 @@ const Login = () => {
 							boxShadow: "0 4px 12px rgba(59,130,246,0.3)",
 						}}
 					>
-						로그인
+						회원가입
 					</button>
+
 					{error && (
 						<p
 							style={{
@@ -143,30 +158,22 @@ const Login = () => {
 							{error}
 						</p>
 					)}
+
+					{success && (
+						<p
+							style={{
+								color: "#34d399",
+								marginTop: "1rem",
+								textAlign: "center",
+							}}
+						>
+							{success}
+						</p>
+					)}
 				</form>
-				<p
-					style={{
-						marginTop: "1.5rem",
-						textAlign: "center",
-						color: "#94a3b8",
-						fontSize: "0.95rem",
-					}}
-				>
-					계정이 없으신가요?{" "}
-					<span
-						style={{
-							color: "#60a5fa",
-							cursor: "pointer",
-							textDecoration: "underline",
-						}}
-						onClick={() => (window.location.href = "/register")}
-					>
-						회원가입하러 가기
-					</span>
-				</p>
 			</div>
 		</div>
 	);
 };
 
-export default Login;
+export default Register;

@@ -1,6 +1,16 @@
 import axios from "axios";
 import { BASE_URL } from "../const";
 
+export const handleRegister = async ({ form, onSuccess, onError }) => {
+	try {
+		await axios.post(`${BASE_URL}/auth/register`, form);
+		onSuccess?.();
+	} catch (err) {
+		const msg = err.response?.data?.detail || "회원가입 실패";
+		onError?.(msg);
+	}
+};
+
 export const handleLogin = async ({ userId, password, onSuccess, onError }) => {
 	try {
 		const res = await axios.post(`${BASE_URL}/auth/login`, {
