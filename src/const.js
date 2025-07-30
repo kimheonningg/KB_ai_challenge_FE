@@ -1,3 +1,5 @@
+export const BASE_URL = "http://localhost:8000"; // 로컬 개발용
+
 export const MOCK_SUGGESTIONS = [
 	{ symbol: "AAPL", name: "Apple Inc." },
 	{ symbol: "TSLA", name: "Tesla Inc." },
