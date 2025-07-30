@@ -2,10 +2,13 @@ import React, { useState } from "react";
 
 const FeatureTabs = ({ activeTab, setActiveTab }) => {
 	const tabs = [
+		{
+			key: "portfolio",
+			label: "포트폴리오 관리",
+			icon: "pie_chart",
+		},
 		{ key: "stock", label: "실시간 주식 대시보드", icon: "insights" },
-		{ key: "news", label: "실시간 뉴스 분석", icon: "feed" },
-		{ key: "reports", label: "재무제표 분석", icon: "table_chart" },
-		{ key: "combined", label: "뉴스와 재무제표 통합 분석", icon: "bolt" },
+		{ key: "insight", label: "AI 어시스턴트", icon: "support_agent" },
 	];
 
 	const [hoverTab, setHoverTab] = useState(null);

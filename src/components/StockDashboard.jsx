@@ -54,17 +54,17 @@ const StockDashboard = () => {
 		<div
 			style={{
 				padding: "2rem",
-				background: "linear-gradient(to bottom, #0f172a, #1e293b)",
+				background:
+					"linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
 				minHeight: "100vh",
-				color: "white",
-				fontFamily: "'Inter', sans-serif",
+				color: "#f8fafc",
+				fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
 			}}
 		>
 			<div
 				style={{
 					display: "flex",
 					gap: "1rem",
-					marginBottom: "1rem",
 					alignItems: "center",
 					justifyContent: "center",
 					flexWrap: "wrap",
@@ -75,35 +75,55 @@ const StockDashboard = () => {
 						position: "relative",
 						display: "flex",
 						alignItems: "center",
-						background: "#1e293b",
-						border: "1px solid #334155",
-						borderRadius: "8px",
-						paddingLeft: "0.75rem",
-						boxShadow: "0 0 6px rgba(255,255,255,0.05)",
+						background:
+							"linear-gradient(135deg, rgba(15, 23, 42, 0.8) 0%, rgba(30, 41, 59, 0.8) 100%)",
+						border: "1px solid rgba(148, 163, 184, 0.3)",
+						borderRadius: "16px",
+						paddingLeft: "1rem",
+						boxShadow:
+							"0 10px 15px -3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)",
 						flex: 1,
-						maxWidth: "960px",
+						// maxWidth: "960px",
+						backdropFilter: "blur(10px)",
+						transition: "all 0.3s ease",
+					}}
+					onMouseEnter={(e) => {
+						e.currentTarget.style.borderColor = "rgba(59, 130, 246, 0.6)";
+						e.currentTarget.style.boxShadow =
+							"0 10px 15px -3px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1)";
+					}}
+					onMouseLeave={(e) => {
+						e.currentTarget.style.borderColor = "rgba(148, 163, 184, 0.3)";
+						e.currentTarget.style.boxShadow =
+							"0 10px 15px -3px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.1)";
 					}}
 				>
 					<span
 						className="material-icons"
-						style={{ color: "#94a3b8", marginRight: "0.4rem" }}
+						style={{
+							color: "#3b82f6",
+							marginRight: "0.5rem",
+							fontSize: "1.2rem",
+						}}
 					>
 						search
 					</span>
 					<input
 						type="text"
-						placeholder="주식 Symbol 입력 (예: AAPL)"
+						placeholder="주식 Symbol 입력 (예: AAPL, TSLA, NVDA)"
 						value={symbolInput}
 						onChange={handleInputChange}
 						onKeyDown={(e) => e.key === "Enter" && addStock()}
 						style={{
 							flex: 1,
-							padding: "0.75rem 1rem",
-							fontSize: "1rem",
+							padding: "1rem 1.5rem",
+							fontSize: "1.1rem",
 							border: "none",
 							outline: "none",
 							background: "transparent",
-							color: "#f1f5f9",
+							color: "#f8fafc",
+							fontWeight: "500",
+							letterSpacing: "0.025em",
 						}}
 					/>
 					{suggestions.length > 0 && (
@@ -113,37 +133,47 @@ const StockDashboard = () => {
 								top: "100%",
 								left: 0,
 								right: 0,
-								// width: "100%",
-								background: "rgba(15, 23, 42, 0.7)",
-								border: "1px solid #334155",
+								background:
+									"linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%)",
+								border: "1px solid rgba(59, 130, 246, 0.3)",
 								borderTop: "none",
-								borderRadius: "0 0 8px 8px",
+								borderRadius: "0 0 16px 16px",
 								zIndex: 10,
-								backdropFilter: "blur(2px)",
-								boxShadow: "0 4px 10px rgba(0, 0, 0, 0.3)",
+								backdropFilter: "blur(20px)",
+								boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.4)",
 								overflow: "hidden",
+								marginTop: "2px",
 							}}
 						>
-							{suggestions.map((s) => (
+							{suggestions.map((s, index) => (
 								<li
 									key={s.symbol}
 									onClick={() => handleSuggestionClick(s.symbol)}
 									style={{
-										padding: "0.5rem 1rem",
+										padding: "0.75rem 1rem",
 										cursor: "pointer",
-										color: "#e2e8f0",
-										borderTop: "1px solid #334155",
+										color: "#cbd5e1",
+										borderTop:
+											index > 0 ? "1px solid rgba(71, 85, 105, 0.3)" : "none",
+										transition: "all 0.2s ease",
+										fontSize: "0.95rem",
 									}}
 									onMouseEnter={(e) => {
-										e.currentTarget.style.background = "#334155";
-										e.currentTarget.style.color = "#e2e8f0";
+										e.currentTarget.style.background =
+											"linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%)";
+										e.currentTarget.style.color = "#f8fafc";
+										e.currentTarget.style.transform = "translateX(4px)";
 									}}
 									onMouseLeave={(e) => {
 										e.currentTarget.style.background = "transparent";
-										e.currentTarget.style.color = "#94a3b8";
+										e.currentTarget.style.color = "#cbd5e1";
+										e.currentTarget.style.transform = "translateX(0)";
 									}}
 								>
-									<b>{s.symbol}</b> – {s.name}
+									<strong style={{ color: "#3b82f6" }}>{s.symbol}</strong>
+									<span style={{ color: "#94a3b8", marginLeft: "0.5rem" }}>
+										– {s.name}
+									</span>
 								</li>
 							))}
 						</ul>
@@ -152,48 +182,127 @@ const StockDashboard = () => {
 
 				<button
 					onClick={addStock}
+					disabled={loading}
 					style={{
-						padding: "0.8rem 1.5rem",
-						borderRadius: "8px",
-						fontWeight: "bold",
+						padding: "1rem 2rem",
+						borderRadius: "16px",
+						alignItems: "center",
+						justifyContent: "center",
+						fontWeight: "600",
+						fontSize: "1rem",
 						border: "none",
-						cursor: "pointer",
-						background: "linear-gradient(to right, #22c55e, #16a34a)",
+						cursor: loading ? "not-allowed" : "pointer",
+						background: loading
+							? "linear-gradient(135deg, #64748b 0%, #475569 100%)"
+							: "linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%)",
 						color: "white",
-						boxShadow: "0 4px 12px rgba(34,197,94,0.3)",
-						transition: "all 0.2s ease-in-out",
+						boxShadow: loading
+							? "0 4px 6px -1px rgba(0, 0, 0, 0.2)"
+							: "0 10px 15px -3px rgba(59, 130, 246, 0.4), 0 4px 6px -2px rgba(139, 92, 246, 0.3)",
+						transition: "all 0.3s ease",
+						letterSpacing: "0.025em",
+						opacity: loading ? 0.7 : 1,
 					}}
-					onMouseEnter={(e) => (e.target.style.transform = "scale(1.05)")}
-					onMouseLeave={(e) => (e.target.style.transform = "scale(1)")}
+					onMouseEnter={(e) => {
+						if (!loading) {
+							e.target.style.transform = "translateY(-2px) scale(1.02)";
+							e.target.style.boxShadow =
+								"0 20px 25px -5px rgba(59, 130, 246, 0.5), 0 10px 10px -5px rgba(139, 92, 246, 0.4)";
+						}
+					}}
+					onMouseLeave={(e) => {
+						if (!loading) {
+							e.target.style.transform = "translateY(0) scale(1)";
+							e.target.style.boxShadow =
+								"0 10px 15px -3px rgba(59, 130, 246, 0.4), 0 4px 6px -2px rgba(139, 92, 246, 0.3)";
+						}
+					}}
 				>
-					검색
+					{loading ? (
+						<>
+							<span
+								className="material-icons"
+								style={{
+									fontSize: "1rem",
+									marginRight: "0.5rem",
+									animation: "spin 1s linear infinite",
+								}}
+							>
+								refresh
+							</span>
+							검색 중...
+						</>
+					) : (
+						<>검색</>
+					)}
 				</button>
 			</div>
 
 			{recent.length > 0 && (
 				<div
 					style={{
-						marginBottom: "1.5rem",
-						fontSize: "0.9rem",
-						textAlign: "center",
+						display: "flex",
+						flexDirection: "row",
+						justifyContent: "center",
+						alignItems: "center",
+						margin: "0.5rem",
+						gap: "0.5rem",
+						flexWrap: "wrap",
+						zIndex: suggestions.length > 0 ? 0 : 5,
+						opacity: suggestions.length > 0 ? 0.2 : 1,
+						// pointerEvents: suggestions.length > 0 ? "none" : "auto",
 					}}
 				>
-					최근 검색:{" "}
-					{recent.map((s, i) => (
-						<span
-							key={s}
-							onClick={() => setSymbolInput(s)}
-							style={{
-								cursor: "pointer",
-								marginRight: "0.5rem",
-								color: "#38bdf8",
-								textDecoration: "underline",
-							}}
-						>
-							{s}
-							{i < recent.length - 1 ? "," : ""}
-						</span>
-					))}
+					<div
+						style={{
+							fontSize: "0.9rem",
+							color: "#94a3b8",
+							fontWeight: "500",
+							whiteSpace: "nowrap",
+						}}
+					>
+						최근 검색 기록:
+					</div>
+					<div
+						style={{
+							display: "flex",
+							flexWrap: "wrap",
+							gap: "0.5rem",
+							justifyContent: "center",
+							alignItems: "center",
+						}}
+					>
+						{recent.map((s, i) => (
+							<span
+								key={s}
+								onClick={() => setSymbolInput(s)}
+								style={{
+									cursor: "pointer",
+									padding: "0.5rem 1rem",
+									background:
+										"linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(147, 51, 234, 0.2) 100%)",
+									color: "#3b82f6",
+									borderRadius: "20px",
+									fontSize: "0.85rem",
+									fontWeight: "600",
+									border: "1px solid rgba(59, 130, 246, 0.3)",
+									transition: "all 0.2s ease",
+									backdropFilter: "blur(10px)",
+								}}
+								onMouseEnter={(e) => {
+									e.target.style.transform = "translateY(-1px) scale(1.05)";
+									e.target.style.boxShadow =
+										"0 4px 6px -1px rgba(59, 130, 246, 0.3)";
+								}}
+								onMouseLeave={(e) => {
+									e.target.style.transform = "translateY(0) scale(1)";
+									e.target.style.boxShadow = "none";
+								}}
+							>
+								{s}
+							</span>
+						))}
+					</div>
 				</div>
 			)}
 
@@ -209,11 +318,38 @@ const StockDashboard = () => {
 
 			{loading && (
 				<div
-					style={{ marginTop: "2rem", textAlign: "center", fontSize: "1.1rem" }}
+					style={{
+						fontSize: "1.2rem",
+						color: "#3b82f6",
+						display: "flex",
+						alignItems: "center",
+						justifyContent: "center",
+						gap: "0.75rem",
+					}}
 				>
-					⏳ 불러오는 중...
+					<span
+						className="material-icons"
+						style={{
+							fontSize: "1.5rem",
+							animation: "spin 1s linear infinite",
+						}}
+					>
+						refresh
+					</span>
+					⏳ 데이터를 불러오는 중입니다...
 				</div>
 			)}
+
+			<style jsx>{`
+				@keyframes spin {
+					from {
+						transform: rotate(0deg);
+					}
+					to {
+						transform: rotate(360deg);
+					}
+				}
+			`}</style>
 		</div>
 	);
 };
