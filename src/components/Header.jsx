@@ -54,9 +54,9 @@ const Header = ({ activeTab, setActiveTab }) => (
 				onClick={() => {
 					const isLoggedIn = localStorage.getItem("authToken");
 					if (!isLoggedIn) {
-						window.location.href = "/login"; // TODO
+						window.location.href = "/login";
 					} else {
-						// TODO
+						window.location.href = "/user_profile";
 					}
 				}}
 			>
