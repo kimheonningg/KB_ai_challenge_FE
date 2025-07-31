@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PortfolioList from "./PortfolioList";
+import { fetchAllPortfolios } from "../utils/portfolio";
 
 const headerStyle = {
 	display: "flex",
@@ -43,50 +44,27 @@ const loginLinkStyle = {
 	fontWeight: "600",
 };
 
-const samplePortfolios = [
-	{
-		id: "1",
-		assetType: "stock",
-		amount: 1000000,
-		currency: "KRW",
-		purchaseDate: "2023-01-15T00:00:00Z",
-		ticker: "AAPL",
-		exchange: "NASDAQ",
-		quantity: 50,
-		purchasePrice: 20000,
-	},
-	{
-		id: "2",
-		assetType: "bond",
-		amount: 500000,
-		currency: "KRW",
-		purchaseDate: "2022-06-10T00:00:00Z",
-		issuer: "한국국채",
-		maturityDate: "2027-06-10T00:00:00Z",
-		faceValue: 1000000,
-		couponRate: 3.5,
-		interestPaymentFreq: "annual",
-	},
-	{
-		id: "3",
-		assetType: "fund",
-		amount: 750000,
-		currency: "KRW",
-		purchaseDate: "2023-03-05T00:00:00Z",
-		fundName: "국내 ETF",
-		fundType: "etf",
-		fundCode: "ETF123",
-		units: 100,
-		purchasePricePerUnit: 7500,
-	},
-];
-
-const PortfolioDashboard = ({ setActiveTab }) => {
+const PortfolioDashboard = () => {
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [portfolios, setPortfolios] = useState([]);
 
 	useEffect(() => {
 		const token = localStorage.getItem("authToken");
 		setIsLoggedIn(!!token);
+
+		if (token) {
+			const fetchData = async () => {
+				try {
+					const res = await fetchAllPortfolios();
+					const list = res.portfolioList || [];
+					setPortfolios(list);
+				} catch (err) {
+					console.error("API fetch error:", err);
+					alert(err.message || "포트폴리오 불러오기 실패");
+				}
+			};
+			fetchData();
+		}
 	}, []);
 
 	const handleAddClick = () => {
@@ -146,7 +124,7 @@ const PortfolioDashboard = ({ setActiveTab }) => {
 				</button>
 			</div>
 
-			<PortfolioList portfolios={samplePortfolios} />
+			<PortfolioList portfolios={portfolios} />
 		</div>
 	);
 };

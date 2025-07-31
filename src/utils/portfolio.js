@@ -18,3 +18,15 @@ export const addPortfolio = async ({ form, onSuccess, onError }) => {
 		onError?.(msg);
 	}
 };
+
+export const fetchAllPortfolios = async () => {
+	const token = localStorage.getItem("authToken");
+	if (!token) throw new Error("로그인이 필요한 서비스입니다.");
+
+	const res = await axios.get(`${BASE_URL}/portfolio/all`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+	return res.data;
+};
