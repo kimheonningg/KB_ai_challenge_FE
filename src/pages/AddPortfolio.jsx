@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { addPortfolio } from "../utils/portfolio";
 
 const containerStyle = {
 	background: "linear-gradient(to bottom, #1e293b, #0f172a)",
@@ -111,9 +112,48 @@ const AddPortfolio = () => {
 		}));
 	};
 
-	const handleSubmit = (e) => {
+	const handleSubmit = async (e) => {
 		e.preventDefault();
-		alert("포트폴리오가 저장되었습니다.");
+
+		// Prepare data with correct types (e.g., convert dates and numbers)
+		const payload = {
+			assetType,
+			amount: Number(formData.amount),
+			currency: formData.currency,
+			purchaseDate: formData.purchaseDate,
+			// stock
+			ticker: formData.ticker || undefined,
+			exchange: formData.exchange || undefined,
+			quantity: formData.quantity ? Number(formData.quantity) : undefined,
+			purchasePrice: formData.purchasePrice
+				? Number(formData.purchasePrice)
+				: undefined,
+			// bond
+			issuer: formData.issuer || undefined,
+			maturityDate: formData.maturityDate || undefined,
+			faceValue: formData.faceValue ? Number(formData.faceValue) : undefined,
+			couponRate: formData.couponRate ? Number(formData.couponRate) : undefined,
+			interestPaymentFreq: formData.interestPaymentFreq,
+			// fund
+			fundName: formData.fundName || undefined,
+			fundType: formData.fundType,
+			fundCode: formData.fundCode || undefined,
+			units: formData.units ? Number(formData.units) : undefined,
+			purchasePricePerUnit: formData.purchasePricePerUnit
+				? Number(formData.purchasePricePerUnit)
+				: undefined,
+		};
+
+		addPortfolio({
+			form: payload,
+			onSuccess: () => {
+				alert("포트폴리오가 저장되었습니다.");
+				window.location.href = "/?tab=portfolio";
+			},
+			onError: (msg) => {
+				alert(msg);
+			},
+		});
 	};
 
 	return (

@@ -103,7 +103,8 @@ const PortfolioDashboard = ({ setActiveTab }) => {
 			<div
 				style={{
 					padding: "1rem 2rem",
-					backgroundColor: "#1e293b",
+					background:
+						"linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
 					minHeight: "calc(100vh - 80px)",
 					display: "flex",
 					alignItems: "center",
@@ -127,7 +128,8 @@ const PortfolioDashboard = ({ setActiveTab }) => {
 		<div
 			style={{
 				padding: "1rem 2rem",
-				backgroundColor: "#1e293b",
+				background:
+					"linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
 				minHeight: "calc(100vh - 80px)",
 			}}
 		>
