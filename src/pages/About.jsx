@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useState } from "react";
+import { submitFeedback } from "../utils/feedback";
 
 const sectionCardStyle = {
 	backgroundColor: "rgba(255, 255, 255, 0.05)",
@@ -10,6 +11,25 @@ const sectionCardStyle = {
 };
 
 const About = () => {
+	const [feedback, setFeedback] = useState("");
+	const [loading, setLoading] = useState(false);
+
+	const sendFeedback = async () => {
+		setLoading(true);
+		try {
+			const data = await submitFeedback(feedback);
+			if (data.success) {
+				alert("의견이 성공적으로 제출되었습니다!");
+				setFeedback("");
+			} else {
+				alert("의견 제출에 실패했습니다.");
+			}
+		} catch (error) {
+			alert(error.message || "서버 오류가 발생했습니다.");
+		}
+		setLoading(false);
+	};
+
 	return (
 		<div
 			style={{
@@ -172,6 +192,8 @@ const About = () => {
 					작성해주세요.
 				</p>
 				<textarea
+					value={feedback}
+					onChange={(e) => setFeedback(e.target.value)}
 					placeholder="예: 종목 검색 속도가 느려요, 새로운 기능 제안 등"
 					style={{
 						width: "100%",
@@ -190,6 +212,7 @@ const About = () => {
 				/>
 				<div style={{ display: "flex", justifyContent: "center" }}>
 					<button
+						disabled={loading}
 						style={{
 							marginTop: "1rem",
 							backgroundColor: "#3b82f6",
@@ -201,7 +224,7 @@ const About = () => {
 							cursor: "pointer",
 							transition: "background-color 0.3s",
 						}}
-						onClick={() => alert("의견이 성공적으로 제출되었습니다!")}
+						onClick={sendFeedback}
 					>
 						의견 보내기
 					</button>
