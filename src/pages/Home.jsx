@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import StockDashboard from "../components/StockDashboard";
+import PortfolioDashboard from "../components/PortfolioDashboard";
 
 const styles = {
 	container: {
@@ -17,6 +18,7 @@ const Home = () => {
 		<div style={styles.container}>
 			<Header activeTab={activeTab} setActiveTab={setActiveTab} />
 			{activeTab === "stock" && <StockDashboard />}
+			{activeTab === "portfolio" && <PortfolioDashboard />}
 		</div>
 	);
 };
