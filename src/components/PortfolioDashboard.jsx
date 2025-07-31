@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PortfolioList from "./PortfolioList";
 
 const headerStyle = {
@@ -22,6 +22,25 @@ const addButtonStyle = {
 	userSelect: "none",
 	fontSize: "1rem",
 	gap: "0.3rem",
+};
+
+const loginMessageStyle = {
+	display: "flex",
+	flexDirection: "column",
+	alignItems: "center",
+	justifyContent: "center",
+	height: "60vh",
+	color: "#cbd5e1",
+	fontSize: "1.2rem",
+	fontFamily: "'Inter', sans-serif",
+};
+
+const loginLinkStyle = {
+	color: "#60a5fa",
+	cursor: "pointer",
+	textDecoration: "underline",
+	marginTop: "0.8rem",
+	fontWeight: "600",
 };
 
 const samplePortfolios = [
@@ -63,9 +82,46 @@ const samplePortfolios = [
 ];
 
 const PortfolioDashboard = ({ setActiveTab }) => {
+	const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+	useEffect(() => {
+		const token = localStorage.getItem("authToken");
+		setIsLoggedIn(!!token);
+	}, []);
+
 	const handleAddClick = () => {
+		if (!isLoggedIn) {
+			window.alert("로그인이 필요한 서비스입니다.");
+			window.location.href = "/login";
+			return;
+		}
 		window.location.href = "/add_portfolio";
 	};
+
+	if (!isLoggedIn) {
+		return (
+			<div
+				style={{
+					padding: "1rem 2rem",
+					backgroundColor: "#1e293b",
+					minHeight: "calc(100vh - 80px)",
+					display: "flex",
+					alignItems: "center",
+					justifyContent: "center",
+				}}
+			>
+				<div style={loginMessageStyle}>
+					로그인이 필요한 서비스입니다.
+					<span
+						style={loginLinkStyle}
+						onClick={() => (window.location.href = "/login")}
+					>
+						로그인하러가기
+					</span>
+				</div>
+			</div>
+		);
+	}
 
 	return (
 		<div
