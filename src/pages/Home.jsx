@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import StockDashboard from "../components/StockDashboard";
 import PortfolioDashboard from "../components/PortfolioDashboard";
@@ -13,12 +14,17 @@ const styles = {
 };
 
 const Home = () => {
-	const [activeTab, setActiveTab] = useState("stock");
+	const location = useLocation();
+	const params = new URLSearchParams(location.search);
+	const initialTab = params.get("tab") || "stock";
+	const [activeTab, setActiveTab] = useState(initialTab);
 	return (
 		<div style={styles.container}>
 			<Header activeTab={activeTab} setActiveTab={setActiveTab} />
 			{activeTab === "stock" && <StockDashboard />}
-			{activeTab === "portfolio" && <PortfolioDashboard />}
+			{activeTab === "portfolio" && (
+				<PortfolioDashboard setActiveTab={setActiveTab} />
+			)}
 		</div>
 	);
 };

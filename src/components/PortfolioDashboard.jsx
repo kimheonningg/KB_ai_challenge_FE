@@ -1,8 +1,30 @@
 import React from "react";
 import PortfolioList from "./PortfolioList";
 
+const headerStyle = {
+	display: "flex",
+	justifyContent: "flex-end",
+	alignItems: "center",
+	marginBottom: "1rem",
+	color: "#e0e7ff",
+	fontFamily: "'Inter', sans-serif",
+};
+
+const addButtonStyle = {
+	display: "flex",
+	alignItems: "center",
+	background: "linear-gradient(90deg, #7c3aed, #c084fc)",
+	borderRadius: "0.5rem",
+	color: "white",
+	padding: "0.5rem 1rem",
+	fontWeight: "600",
+	cursor: "pointer",
+	userSelect: "none",
+	fontSize: "1rem",
+	gap: "0.3rem",
+};
+
 const samplePortfolios = [
-	// FIXME: replace with api connection
 	{
 		id: "1",
 		assetType: "stock",
@@ -40,8 +62,35 @@ const samplePortfolios = [
 	},
 ];
 
-const PortfolioDashboard = () => {
-	return <PortfolioList portfolios={samplePortfolios} />;
+const PortfolioDashboard = ({ setActiveTab }) => {
+	const handleAddClick = () => {
+		window.location.href = "/add_portfolio";
+	};
+
+	return (
+		<div
+			style={{
+				padding: "1rem 2rem",
+				backgroundColor: "#1e293b",
+				minHeight: "calc(100vh - 80px)",
+			}}
+		>
+			<div style={headerStyle}>
+				<button
+					style={addButtonStyle}
+					onClick={handleAddClick}
+					aria-label="포트폴리오 항목 추가하기"
+				>
+					<span className="material-icons" style={{ fontSize: "1.3rem" }}>
+						add
+					</span>
+					포트폴리오 항목 추가하기
+				</button>
+			</div>
+
+			<PortfolioList portfolios={samplePortfolios} />
+		</div>
+	);
 };
 
 export default PortfolioDashboard;
