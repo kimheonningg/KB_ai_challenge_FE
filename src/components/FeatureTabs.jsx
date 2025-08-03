@@ -8,7 +8,7 @@ const FeatureTabs = ({ activeTab, setActiveTab }) => {
 	const tabs = [
 		{ key: "portfolio", label: "포트폴리오 관리", icon: "pie_chart" },
 		{ key: "stock", label: "실시간 주식 대시보드", icon: "insights" },
-		{ key: "insight", label: "AI 어시스턴트", icon: "support_agent" },
+		{ key: "assistant", label: "AI 어시스턴트", icon: "support_agent" },
 	];
 
 	const [hoverTab, setHoverTab] = useState(null);

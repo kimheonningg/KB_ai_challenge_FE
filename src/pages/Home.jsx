@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import Header from "../components/Header";
 import StockDashboard from "../components/StockDashboard";
 import PortfolioDashboard from "../components/PortfolioDashboard";
+import AIAssistantDashboard from "../components/AIAssistantDashboard";
 
 const styles = {
 	container: {
@@ -25,6 +26,7 @@ const Home = () => {
 			{activeTab === "portfolio" && (
 				<PortfolioDashboard setActiveTab={setActiveTab} />
 			)}
+			{activeTab === "assistant" && <AIAssistantDashboard />}
 		</div>
 	);
 };
