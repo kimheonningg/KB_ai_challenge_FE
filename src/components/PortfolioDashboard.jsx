@@ -45,27 +45,29 @@ const loginLinkStyle = {
 };
 
 const PortfolioDashboard = () => {
-	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [isLoggedIn, setIsLoggedIn] = useState(() => {
+		return !!localStorage.getItem("authToken");
+	});
 	const [portfolios, setPortfolios] = useState([]);
 
 	useEffect(() => {
-		const token = localStorage.getItem("authToken");
-		setIsLoggedIn(!!token);
-
-		if (token) {
-			const fetchData = async () => {
-				try {
-					const res = await fetchAllPortfolios();
-					const list = res.portfolioList || [];
-					setPortfolios(list);
-				} catch (err) {
-					console.error("API fetch error:", err);
-					alert(err.message || "포트폴리오 불러오기 실패");
-				}
-			};
-			fetchData();
+		if (!isLoggedIn) {
+			setPortfolios([]);
+			return;
 		}
-	}, []);
+
+		const fetchData = async () => {
+			try {
+				const res = await fetchAllPortfolios();
+				const list = res.portfolioList || [];
+				setPortfolios(list);
+			} catch (err) {
+				console.error("API fetch error:", err);
+				alert(err.message || "포트폴리오 불러오기 실패");
+			}
+		};
+		fetchData();
+	}, [isLoggedIn]);
 
 	const handleAddClick = () => {
 		if (!isLoggedIn) {
