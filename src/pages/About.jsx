@@ -164,7 +164,7 @@ const About = () => {
 					<br />
 					Frontend, Backend, AI 기능 모두 직접 설계 및 구현하였습니다.
 					<br />
-					<b style={{ color: "#facc15" }}>Team 피카츄⚡</b>의 열정으로 최고의
+					<b style={{ color: "#facc15" }}>Team 피츄⚡</b>의 열정으로 최고의
 					사용자 경험을 목표로 지속 개선 중입니다.
 				</p>
 			</section>

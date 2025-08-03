@@ -27,6 +27,10 @@ const columnHeaderStyle = {
 	borderBottom: "2px solid #6366f1",
 	paddingBottom: "0.5rem",
 	textAlign: "center",
+	position: "sticky",
+	top: 0,
+	backgroundColor: "#1e293b",
+	zIndex: 10,
 };
 
 const cardStyle = {

@@ -76,7 +76,7 @@ const Header = ({ activeTab, setActiveTab }) => (
 		<h1 style={styles.title}>AI 기반 주식 분석 플랫폼</h1>
 		<p style={styles.subtitle}>
 			KB Future Finance A.I. Challenge
-			<span style={styles.teamBadge}>Team 피카츄⚡</span>
+			<span style={styles.teamBadge}>Team 피츄⚡</span>
 		</p>
 		<FeatureTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 	</div>
