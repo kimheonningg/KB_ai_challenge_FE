@@ -7,7 +7,6 @@ const ChatMessage = ({ from, text }) => {
 		<div
 			style={{
 				alignSelf: isUser ? "flex-end" : "flex-start",
-				maxWidth: "70%",
 				backgroundColor: isUser ? "#6776f4" : "#e5e8ee",
 				color: isUser ? "white" : "#444",
 				padding: "10px 16px",

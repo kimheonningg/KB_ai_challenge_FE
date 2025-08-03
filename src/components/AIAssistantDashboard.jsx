@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import PortfolioSummarySection from "./AIAssistant/PortfolioSummarySection";
+import InsightsSection from "./AIAssistant/InsightsSection";
 import ChatSection from "./AIAssistant/ChatSection";
 
 const portfolioData = {
@@ -68,12 +69,16 @@ const AIAssistantDashboard = () => {
 		// TODO
 	};
 
+	const onInsight = () => alert("인사이트 제공 기능 호출");
+	const onReport = () => alert("자동 리포트 생성 기능 호출");
+	const onRisk = () => alert("위험 신호 감지 기능 호출");
+
 	return (
 		<div
 			style={{
 				background:
 					"linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
-				minHeight: "100vh",
+				height: "100vh-80px",
 				paddingTop: 80,
 				paddingBottom: 80,
 				paddingLeft: 24,
@@ -99,6 +104,11 @@ const AIAssistantDashboard = () => {
 				}}
 			>
 				<PortfolioSummarySection data={portfolioData} />
+				<InsightsSection
+					onInsight={onInsight}
+					onReport={onReport}
+					onRisk={onRisk}
+				/>
 			</div>
 			<aside
 				style={{
@@ -112,6 +122,7 @@ const AIAssistantDashboard = () => {
 					flexDirection: "column",
 					minHeight: "calc(100vh - 80px)",
 					fontFamily: "'Inter', sans-serif",
+					overflowY: "auto",
 				}}
 			>
 				<ChatSection
