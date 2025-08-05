@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { fetchCreateReport, fetchReportsList } from "../utils/report";
+import {
+	fetchCreateReport,
+	fetchReportsList,
+	deleteReport as apiDeleteReport,
+} from "../utils/report";
+
 const appBackgroundStyle = {
 	minHeight: "100vh",
 	backgroundColor: "#0f172a",
@@ -8,6 +13,7 @@ const appBackgroundStyle = {
 	fontFamily: "'Inter', sans-serif",
 	padding: "2rem",
 	boxSizing: "border-box",
+	position: "relative",
 };
 
 const containerStyle = {
@@ -66,6 +72,9 @@ const listItemStyle = {
 	marginBottom: "1rem",
 	cursor: "pointer",
 	boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+	display: "flex",
+	justifyContent: "space-between",
+	alignItems: "center",
 };
 
 const selectedListItemStyle = {
@@ -73,11 +82,41 @@ const selectedListItemStyle = {
 	border: "2px solid #6366f1",
 };
 
+const trashIconStyle = {
+	cursor: "pointer",
+	fontSize: "1.5rem",
+	color: "#f87171",
+	marginLeft: 12,
+};
+
+const deleteButtonStyle = {
+	padding: "0.3rem 0.8rem",
+	borderRadius: 6,
+	backgroundColor: "#ef4444",
+	color: "white",
+	border: "none",
+	cursor: "pointer",
+	fontWeight: "600",
+	marginLeft: 12,
+};
+
+const deleteGoBackButtonStyle = {
+	padding: "0.3rem 0.8rem",
+	borderRadius: 6,
+	backgroundColor: "#4ade80",
+	color: "white",
+	border: "none",
+	cursor: "pointer",
+	fontWeight: "600",
+	marginLeft: 8,
+};
+
 const Reports = () => {
 	const [reports, setReports] = useState([]);
 	const [selectedReportId, setSelectedReportId] = useState(null);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
+	const [deleteMode, setDeleteMode] = useState({});
 
 	useEffect(() => {
 		const loadReports = async () => {
@@ -85,14 +124,10 @@ const Reports = () => {
 			setError(null);
 			try {
 				const data = await fetchReportsList();
-
 				const reportsArray = data?.reports_list || [];
-
 				setReports(reportsArray);
-
-				if (reportsArray.length > 0) {
+				if (reportsArray.length > 0)
 					setSelectedReportId(reportsArray[0].report_id);
-				}
 			} catch (err) {
 				setError(err.message || "API 호출 실패");
 			} finally {
@@ -118,8 +153,68 @@ const Reports = () => {
 
 	const selectedReport = reports.find((r) => r.report_id === selectedReportId);
 
+	const toggleDeleteMode = (reportId, e) => {
+		e.stopPropagation();
+		setDeleteMode((prev) => ({
+			...prev,
+			[reportId]: !prev[reportId],
+		}));
+	};
+
+	const cancelDeleteMode = (reportId, e) => {
+		e.stopPropagation();
+		setDeleteMode((prev) => {
+			const copy = { ...prev };
+			delete copy[reportId];
+			return copy;
+		});
+	};
+
+	const deleteReport = async (reportId) => {
+		setLoading(true);
+		setError(null);
+		try {
+			const res = await apiDeleteReport(reportId);
+			if (res.success) {
+				setReports((prev) => prev.filter((r) => r.report_id !== reportId));
+				setDeleteMode((prev) => {
+					const copy = { ...prev };
+					delete copy[reportId];
+					return copy;
+				});
+				if (selectedReportId === reportId) {
+					setSelectedReportId(null);
+				}
+			} else {
+				setError("삭제 실패: 서버에서 실패 응답을 받았습니다.");
+			}
+		} catch (err) {
+			setError(err.message || "삭제 실패");
+		} finally {
+			setLoading(false);
+		}
+	};
+
 	return (
 		<div style={appBackgroundStyle}>
+			<span
+				className="material-icons"
+				style={{
+					position: "absolute",
+					top: "1.5rem",
+					left: "1.5rem",
+					cursor: "pointer",
+					fontSize: "2rem",
+					color: "#f8fafc",
+					zIndex: 100,
+				}}
+				onClick={() => {
+					window.location.href = "/?tab=assistant";
+				}}
+				title="뒤로가기"
+			>
+				arrow_back
+			</span>
 			<div style={containerStyle}>
 				<div style={headerWrapperStyle}>
 					<h1 style={headerStyle}>자동 리포트 생성</h1>
@@ -151,10 +246,42 @@ const Reports = () => {
 								onClick={() => setSelectedReportId(r.report_id)}
 							>
 								<div>
-									<strong>리포트 ID:</strong> {r.report_id}
+									<div>
+										<strong>리포트 ID:</strong> {r.report_id}
+									</div>
+									<div>
+										<small>{new Date(r.generated_at).toLocaleString()}</small>
+									</div>
 								</div>
 								<div>
-									<small>{new Date(r.generated_at).toLocaleString()}</small>
+									{!deleteMode[r.report_id] ? (
+										<span
+											className="material-icons"
+											style={trashIconStyle}
+											onClick={(e) => toggleDeleteMode(r.report_id, e)}
+											title="삭제"
+										>
+											delete
+										</span>
+									) : (
+										<>
+											<button
+												style={deleteButtonStyle}
+												onClick={(e) => {
+													e.stopPropagation();
+													deleteReport(r.report_id);
+												}}
+											>
+												삭제하기
+											</button>
+											<button
+												style={deleteGoBackButtonStyle}
+												onClick={(e) => cancelDeleteMode(r.report_id, e)}
+											>
+												돌아가기
+											</button>
+										</>
+									)}
 								</div>
 							</div>
 						))}
@@ -170,13 +297,7 @@ const Reports = () => {
 										margin: "0 auto",
 									}}
 								/>
-								<div
-									style={{
-										marginTop: "10px",
-									}}
-								>
-									리포트 생성 중...
-								</div>
+								<div style={{ marginTop: "10px" }}>리포트 생성 중...</div>
 							</div>
 						)}
 					</div>
@@ -312,6 +433,7 @@ const Reports = () => {
 								fontSize: 14,
 								lineHeight: 1.6,
 								fontFamily: "'Noto Sans KR', sans-serif",
+								marginBottom: "1.5rem",
 							}}
 						>
 							<ReactMarkdown>{selectedReport.report_content}</ReactMarkdown>
