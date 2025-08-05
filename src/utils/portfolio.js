@@ -1,4 +1,4 @@
-import axiosInstance from "./axiosInstance";
+import axios from "axios";
 import { BASE_URL } from "../const";
 import { fetchQuote, fetchHistoricalPrice } from "./alphavantage";
 
@@ -7,7 +7,7 @@ export const addPortfolio = async ({ form, onSuccess, onError }) => {
 		const token = localStorage.getItem("authToken");
 		if (!token) throw new Error("로그인이 필요한 서비스입니다.");
 
-		const res = await axiosInstance.post(`${BASE_URL}/portfolio/add`, form, {
+		const res = await axios.post(`${BASE_URL}/portfolio/add`, form, {
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
@@ -26,7 +26,7 @@ export const fetchAllPortfolios = async () => {
 	const token = localStorage.getItem("authToken");
 	if (!token) throw new Error("로그인이 필요한 서비스입니다.");
 
-	const res = await axiosInstance.get(`${BASE_URL}/portfolio/all`, {
+	const res = await axios.get(`${BASE_URL}/portfolio/all`, {
 		headers: {
 			Authorization: `Bearer ${token}`,
 		},
@@ -42,12 +42,15 @@ export const deletePortfolio = async ({ portfolioId, onSuccess, onError }) => {
 		// 백엔드 API 호출 시도 (더 안정적인 방식)
 		try {
 			// 가장 일반적인 REST API 패턴부터 시도
-			const response = await axiosInstance.delete(`${BASE_URL}/portfolio/${portfolioId}`, {
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			});
-			
+			const response = await axios.delete(
+				`${BASE_URL}/portfolio/${portfolioId}`,
+				{
+					headers: {
+						Authorization: `Bearer ${token}`,
+					},
+				}
+			);
+
 			// 성공적으로 삭제된 경우
 			console.log("Portfolio deleted successfully:", response.data);
 			onSuccess?.();
@@ -55,7 +58,7 @@ export const deletePortfolio = async ({ portfolioId, onSuccess, onError }) => {
 		} catch (apiError) {
 			// 404 에러나 다른 에러가 발생한 경우
 			console.warn("Backend delete API not available or failed:", apiError);
-			
+
 			// 백엔드 API가 준비되지 않은 경우를 위한 임시 처리
 			// 실제 운영에서는 백엔드에서 삭제되어야 하지만, 개발 중에는 프론트엔드에서만 처리
 			console.log("Using frontend-only deletion for portfolio:", portfolioId);
@@ -64,7 +67,8 @@ export const deletePortfolio = async ({ portfolioId, onSuccess, onError }) => {
 		}
 	} catch (err) {
 		console.error("Delete portfolio error:", err);
-		const msg = err.response?.data?.detail || err.message || "포트폴리오 삭제 실패";
+		const msg =
+			err.response?.data?.detail || err.message || "포트폴리오 삭제 실패";
 		onError?.(msg);
 	}
 };
@@ -96,15 +100,19 @@ export const calculatePortfolioReturns = async (portfolios) => {
 			if (portfolio.assetType === "stock" && portfolio.ticker) {
 				// 주식의 경우 과거 주가와 현재 주가 비교
 				const quantity = portfolio.quantity || 0;
-				
+
 				// 현재 주가 조회
 				const currentQuote = await fetchQuote(portfolio.ticker);
-				const currentPrice = currentQuote && currentQuote["05. price"] 
-					? parseFloat(currentQuote["05. price"]) 
-					: 0;
+				const currentPrice =
+					currentQuote && currentQuote["05. price"]
+						? parseFloat(currentQuote["05. price"])
+						: 0;
 
 				// 매입 시기 주가 조회
-				const historicalPrice = await fetchHistoricalPrice(portfolio.ticker, portfolio.purchaseDate);
+				const historicalPrice = await fetchHistoricalPrice(
+					portfolio.ticker,
+					portfolio.purchaseDate
+				);
 				const purchasePrice = historicalPrice ? historicalPrice.close : 0;
 
 				if (currentPrice > 0 && purchasePrice > 0 && quantity > 0) {
@@ -133,7 +141,12 @@ export const calculatePortfolioReturns = async (portfolios) => {
 			totalCost += cost;
 			assetValues[portfolio.assetType] += currentValue;
 		} catch (error) {
-			console.error(`Error calculating returns for ${portfolio.ticker || portfolio.assetType}:`, error);
+			console.error(
+				`Error calculating returns for ${
+					portfolio.ticker || portfolio.assetType
+				}:`,
+				error
+			);
 			totalValue += portfolio.amount;
 			totalCost += portfolio.amount;
 			assetValues[portfolio.assetType] += portfolio.amount;
@@ -141,7 +154,10 @@ export const calculatePortfolioReturns = async (portfolios) => {
 	}
 
 	// 자산 배분 계산
-	const totalAssetValue = Object.values(assetValues).reduce((sum, val) => sum + val, 0);
+	const totalAssetValue = Object.values(assetValues).reduce(
+		(sum, val) => sum + val,
+		0
+	);
 	if (totalAssetValue > 0) {
 		allocation.stock = Math.round((assetValues.stock / totalAssetValue) * 100);
 		allocation.bond = Math.round((assetValues.bond / totalAssetValue) * 100);
@@ -157,8 +173,12 @@ export const calculatePortfolioReturns = async (portfolios) => {
 
 	return {
 		totalAsset: `₩${(totalValue / 1000000).toFixed(1)}M`,
-		dailyReturn: `${dailyReturnPercent >= 0 ? '+' : ''}${dailyReturnPercent.toFixed(1)}%`,
-		yearlyReturn: `${returnPercent >= 0 ? '+' : ''}${returnPercent.toFixed(1)}%`,
+		dailyReturn: `${
+			dailyReturnPercent >= 0 ? "+" : ""
+		}${dailyReturnPercent.toFixed(1)}%`,
+		yearlyReturn: `${returnPercent >= 0 ? "+" : ""}${returnPercent.toFixed(
+			1
+		)}%`,
 		allocation: [
 			{ label: "주식", percent: allocation.stock, color: "#6678f4" },
 			{ label: "채권", percent: allocation.bond, color: "#45af79" },

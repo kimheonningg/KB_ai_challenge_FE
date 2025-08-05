@@ -6,6 +6,7 @@ import Login from "./pages/Login";
 import UserProfile from "./pages/UserProfile";
 import Register from "./pages/Register";
 import AddPortfolio from "./pages/AddPortfolio";
+import Reports from "./pages/Reports";
 
 const App = () => (
 	<Router>
@@ -16,6 +17,7 @@ const App = () => (
 			<Route path="/user_profile" element={<UserProfile />} />
 			<Route path="/register" element={<Register />} />
 			<Route path="/add_portfolio" element={<AddPortfolio />} />
+			<Route path="/create_report" element={<Reports />} />
 		</Routes>
 	</Router>
 );

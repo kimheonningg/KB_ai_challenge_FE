@@ -1,22 +1,22 @@
 import axios from "axios";
 import { BASE_URL } from "../const";
 
-// TOKEN management
-export const isTokenValid = (token) => {
-	if (!token) return false;
-	try {
-		const base64Payload = token.split(".")[1];
-		const payload = JSON.parse(atob(base64Payload));
-		const now = Date.now() / 1000;
-		return payload.exp && payload.exp > now;
-	} catch {
-		return false;
-	}
-};
+// TOKEN management - unused for now
+// export const isTokenValid = (token) => {
+// 	if (!token) return false;
+// 	try {
+// 		const base64Payload = token.split(".")[1];
+// 		const payload = JSON.parse(atob(base64Payload));
+// 		const now = Date.now() / 1000;
+// 		return payload.exp && payload.exp > now;
+// 	} catch {
+// 		return false;
+// 	}
+// };
 
-export const getToken = () => localStorage.getItem("authToken");
+// export const getToken = () => localStorage.getItem("authToken");
 
-export const clearToken = () => localStorage.removeItem("authToken");
+// export const clearToken = () => localStorage.removeItem("authToken");
 
 export const handleRegister = async ({ form, onSuccess, onError }) => {
 	try {

@@ -129,7 +129,9 @@ const AIAssistantDashboard = () => {
 	};
 
 	const onInsight = () => alert("인사이트 제공 기능 호출");
-	const onReport = () => alert("자동 리포트 생성 기능 호출");
+	const onReport = () => {
+		window.location.href = "/create_report";
+	};
 	const onRisk = () => alert("위험 신호 감지 기능 호출");
 
 	return (
