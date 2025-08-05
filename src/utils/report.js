@@ -12,3 +12,15 @@ export const fetchCreateReport = async () => {
 	});
 	return res.data;
 };
+
+export const fetchReportsList = async () => {
+	const token = localStorage.getItem("authToken");
+	if (!token) throw new Error("로그인이 필요한 서비스입니다.");
+
+	const res = await axios.get(`${BASE_URL}/report/all`, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+		},
+	});
+	return res.data;
+};

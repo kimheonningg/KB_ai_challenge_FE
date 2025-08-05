@@ -1,7 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { fetchCreateReport } from "../utils/createReport";
-
+import { fetchCreateReport, fetchReportsList } from "../utils/report";
 const appBackgroundStyle = {
 	minHeight: "100vh",
 	backgroundColor: "#0f172a",
@@ -80,6 +79,29 @@ const Reports = () => {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 
+	useEffect(() => {
+		const loadReports = async () => {
+			setLoading(true);
+			setError(null);
+			try {
+				const data = await fetchReportsList();
+
+				const reportsArray = data?.reports_list || [];
+
+				setReports(reportsArray);
+
+				if (reportsArray.length > 0) {
+					setSelectedReportId(reportsArray[0].report_id);
+				}
+			} catch (err) {
+				setError(err.message || "API 호출 실패");
+			} finally {
+				setLoading(false);
+			}
+		};
+		loadReports();
+	}, []);
+
 	const createNewReport = async () => {
 		setLoading(true);
 		setError(null);
@@ -112,8 +134,11 @@ const Reports = () => {
 				</div>
 
 				<section style={{ marginBottom: 24 }}>
-					<div style={labelStyle}>이전 리포트 목록</div>
-					{reports.length === 0 && <div>생성된 리포트가 없습니다.</div>}
+					<div style={labelStyle}>나의 리포트 목록</div>
+					{reports.length === 0 && !loading && (
+						<div>생성된 리포트가 없습니다.</div>
+					)}
+					{error && <div style={{ color: "red" }}>{error}</div>}
 					<div>
 						{reports.map((r) => (
 							<div
@@ -133,7 +158,6 @@ const Reports = () => {
 								</div>
 							</div>
 						))}
-
 						{loading && (
 							<div
 								style={{ textAlign: "center", marginTop: 12, color: "#c4b5fd" }}
@@ -159,7 +183,7 @@ const Reports = () => {
 				</section>
 
 				{selectedReport && !loading && (
-					<>
+					<div style={{ marginTop: "80px" }}>
 						<div
 							style={{ fontWeight: "600", color: "#93c5fd", marginBottom: 8 }}
 						>
@@ -348,7 +372,7 @@ const Reports = () => {
 									</ul>
 								</section>
 							)}
-					</>
+					</div>
 				)}
 			</div>
 
