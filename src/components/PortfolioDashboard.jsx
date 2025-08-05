@@ -78,6 +78,21 @@ const PortfolioDashboard = () => {
 		window.location.href = "/add_portfolio";
 	};
 
+	const handlePortfolioDelete = (portfolioId) => {
+		console.log("PortfolioDashboard: Deleting portfolio with ID:", portfolioId);
+		console.log("Current portfolios before deletion:", portfolios);
+		
+		// 삭제된 포트폴리오를 목록에서 제거
+		setPortfolios(prevPortfolios => {
+			const updatedPortfolios = prevPortfolios.filter(portfolio => portfolio._id !== portfolioId);
+			console.log("Updated portfolios after deletion:", updatedPortfolios);
+			return updatedPortfolios;
+		});
+		
+		// 포트폴리오 업데이트 이벤트 발생 (AI Assistant Dashboard 업데이트용)
+		window.dispatchEvent(new Event('portfolioUpdated'));
+	};
+
 	if (!isLoggedIn) {
 		return (
 			<div
@@ -126,7 +141,7 @@ const PortfolioDashboard = () => {
 				</button>
 			</div>
 
-			<PortfolioList portfolios={portfolios} />
+			<PortfolioList portfolios={portfolios} onPortfolioDelete={handlePortfolioDelete} />
 		</div>
 	);
 };

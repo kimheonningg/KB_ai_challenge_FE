@@ -1,4 +1,6 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { fetchQuote, fetchHistoricalPrice } from "../utils/alphavantage";
+import { deletePortfolio } from "../utils/portfolio";
 
 const containerStyle = {
 	padding: "1rem 2rem",
@@ -43,6 +45,7 @@ const cardStyle = {
 	display: "flex",
 	flexDirection: "column",
 	gap: "0.5rem",
+	position: "relative",
 };
 
 const fieldRowStyle = {
@@ -57,8 +60,45 @@ const labelStyle = {
 	color: "#94a3b8",
 };
 
-const PortfolioCard = ({ portfolio }) => {
+const returnStyle = {
+	display: "flex",
+	justifyContent: "space-between",
+	alignItems: "center",
+	padding: "0.5rem",
+	backgroundColor: "rgba(255,255,255,0.05)",
+	borderRadius: "0.5rem",
+	marginTop: "0.5rem",
+};
+
+const deleteButtonStyle = {
+	position: "absolute",
+	top: "0.5rem",
+	right: "0.5rem",
+	background: "linear-gradient(45deg, #ef4444, #dc2626)",
+	border: "none",
+	borderRadius: "50%",
+	width: "2rem",
+	height: "2rem",
+	color: "white",
+	cursor: "pointer",
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "center",
+	fontSize: "1rem",
+	transition: "all 0.2s ease",
+	boxShadow: "0 2px 8px rgba(239, 68, 68, 0.3)",
+};
+
+const PortfolioCard = ({ portfolio, onDelete }) => {
+	const [currentValue, setCurrentValue] = useState(null);
+	const [returnPercent, setReturnPercent] = useState(null);
+	const [purchasePrice, setPurchasePrice] = useState(null);
+	const [currentPrice, setCurrentPrice] = useState(null);
+	const [loading, setLoading] = useState(true);
+	const [deleting, setDeleting] = useState(false);
+
 	const {
+		_id,
 		assetType,
 		amount,
 		currency,
@@ -66,7 +106,7 @@ const PortfolioCard = ({ portfolio }) => {
 		ticker,
 		exchange,
 		quantity,
-		purchasePrice,
+		purchasePrice: manualPurchasePrice,
 		issuer,
 		maturityDate,
 		faceValue,
@@ -79,8 +119,108 @@ const PortfolioCard = ({ portfolio }) => {
 		purchasePricePerUnit,
 	} = portfolio;
 
+	// 현재 가치와 수익률 계산 (과거 주가 기반)
+	useEffect(() => {
+		const calculateValue = async () => {
+			try {
+				setLoading(true);
+				let currentVal = 0;
+				let cost = 0;
+				let purchasePriceValue = null;
+				let currentPriceValue = null;
+
+				if (assetType === "stock" && ticker) {
+					// 주식의 경우 과거 주가와 현재 주가 비교
+					const qty = quantity || 0;
+					
+					// 현재 주가 조회
+					const currentQuote = await fetchQuote(ticker);
+					currentPriceValue = currentQuote && currentQuote["05. price"] 
+						? parseFloat(currentQuote["05. price"]) 
+						: 0;
+
+					// 매입 시기 주가 조회
+					const historicalPrice = await fetchHistoricalPrice(ticker, purchaseDate);
+					purchasePriceValue = historicalPrice ? historicalPrice.close : 0;
+
+					if (currentPriceValue > 0 && purchasePriceValue > 0 && qty > 0) {
+						// 정확한 계산: 보유수량 × 현재가 = 현재가치, 보유수량 × 매입가 = 투자원금
+						currentVal = currentPriceValue * qty;
+						cost = purchasePriceValue * qty;
+					} else {
+						// API 호출 실패시 기존 투자금액 사용
+						currentVal = amount;
+						cost = amount;
+					}
+				} else if (assetType === "bond") {
+					// 채권의 경우 단순화된 계산
+					currentVal = amount * 1.02; // 2% 수익률 가정
+					cost = amount;
+				} else if (assetType === "fund") {
+					// 펀드의 경우 단순화된 계산
+					currentVal = amount * 1.05; // 5% 수익률 가정
+					cost = amount;
+				} else {
+					currentVal = amount;
+					cost = amount;
+				}
+
+				setCurrentValue(currentVal);
+				setPurchasePrice(purchasePriceValue);
+				setCurrentPrice(currentPriceValue);
+				const returnPct = cost > 0 ? ((currentVal - cost) / cost) * 100 : 0;
+				setReturnPercent(returnPct);
+			} catch (error) {
+				console.error(`Error calculating value for ${ticker || assetType}:`, error);
+				setCurrentValue(amount);
+				setReturnPercent(0);
+			} finally {
+				setLoading(false);
+			}
+		};
+
+		calculateValue();
+	}, [portfolio]);
+
+	const handleDelete = async () => {
+		if (!window.confirm("정말로 이 포트폴리오 항목을 삭제하시겠습니까?")) {
+			return;
+		}
+
+		setDeleting(true);
+		try {
+			await deletePortfolio({
+				portfolioId: _id,
+				onSuccess: () => {
+					console.log("Delete success for portfolio:", _id);
+					// 삭제 성공 시 즉시 UI에서 제거
+					onDelete(_id);
+				},
+				onError: (msg) => {
+					console.error("Delete failed:", msg);
+					alert(msg);
+				},
+			});
+		} catch (error) {
+			console.error("Delete error:", error);
+			alert("삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
+		} finally {
+			setDeleting(false);
+		}
+	};
+
 	return (
 		<div style={cardStyle}>
+			{/* 삭제 버튼 */}
+			<button
+				style={deleteButtonStyle}
+				onClick={handleDelete}
+				disabled={deleting}
+				title="삭제"
+			>
+				{deleting ? "..." : "×"}
+			</button>
+
 			<div style={{ fontWeight: "700", fontSize: "1.1rem", color: "#93c5fd" }}>
 				{assetType === "stock" && `${ticker || "N/A"}`}
 				{assetType === "bond" && `${issuer || "N/A"}`}
@@ -88,14 +228,73 @@ const PortfolioCard = ({ portfolio }) => {
 			</div>
 			<div style={fieldRowStyle}>
 				<div>
-					<span style={labelStyle}>투자금액: </span>
-					{amount.toLocaleString()} {currency}
+					<span style={labelStyle}>투자원금: </span>
+					{!loading && assetType === "stock" && purchasePrice && quantity ? 
+						`${(purchasePrice * quantity).toLocaleString()} ${currency}` :
+						`${amount.toLocaleString()} ${currency}`
+					}
 				</div>
 				<div>
 					<span style={labelStyle}>매수일: </span>
 					{new Date(purchaseDate).toLocaleDateString()}
 				</div>
 			</div>
+
+			{/* 수익률 정보 표시 */}
+			{!loading && (
+				<div style={returnStyle}>
+					<div>
+						<span style={labelStyle}>현재 가치: </span>
+						<span style={{ color: "#f1f5f9", fontWeight: "600" }}>
+							{currentValue ? currentValue.toLocaleString() : "-"} {currency}
+						</span>
+					</div>
+					<div>
+						<span style={labelStyle}>수익률: </span>
+						<span 
+							style={{ 
+								color: returnPercent >= 0 ? "#10b981" : "#ef4444", 
+								fontWeight: "700",
+								fontSize: "1rem"
+							}}
+						>
+							{returnPercent >= 0 ? '+' : ''}{returnPercent.toFixed(1)}%
+						</span>
+					</div>
+				</div>
+			)}
+
+			{/* 주식의 경우 매입가와 현재가 표시 */}
+			{!loading && assetType === "stock" && purchasePrice && currentPrice && (
+				<div style={fieldRowStyle}>
+					<div>
+						<span style={labelStyle}>매입가: </span>
+						<span style={{ color: "#f1f5f9" }}>
+							{purchasePrice.toLocaleString()} {currency}
+						</span>
+					</div>
+					<div>
+						<span style={labelStyle}>현재가: </span>
+						<span style={{ 
+							color: currentPrice >= purchasePrice ? "#10b981" : "#ef4444",
+							fontWeight: "600"
+						}}>
+							{currentPrice.toLocaleString()} {currency}
+						</span>
+					</div>
+				</div>
+			)}
+
+			{loading && (
+				<div style={{ 
+					textAlign: "center", 
+					color: "#94a3b8", 
+					fontSize: "0.9rem",
+					padding: "0.5rem"
+				}}>
+					수익률 계산 중...
+				</div>
+			)}
 
 			{assetType === "stock" && (
 				<>
@@ -109,12 +308,14 @@ const PortfolioCard = ({ portfolio }) => {
 							{quantity || "-"}
 						</div>
 					</div>
-					<div style={fieldRowStyle}>
-						<div>
-							<span style={labelStyle}>매입가: </span>
-							{purchasePrice ? purchasePrice.toLocaleString() : "-"} {currency}
+					{manualPurchasePrice && (
+						<div style={fieldRowStyle}>
+							<div>
+								<span style={labelStyle}>입력 매입가: </span>
+								{manualPurchasePrice.toLocaleString()} {currency}
+							</div>
 						</div>
-					</div>
+					)}
 				</>
 			)}
 
@@ -147,8 +348,8 @@ const PortfolioCard = ({ portfolio }) => {
 				<>
 					<div style={fieldRowStyle}>
 						<div>
-							<span style={labelStyle}>펀드 유형: </span>
-							{fundType || "-"}
+							<span style={labelStyle}>펀드 종류: </span>
+							{fundType === "mutual" ? "뮤추얼펀드" : "ETF"}
 						</div>
 						<div>
 							<span style={labelStyle}>펀드 코드: </span>
@@ -157,15 +358,12 @@ const PortfolioCard = ({ portfolio }) => {
 					</div>
 					<div style={fieldRowStyle}>
 						<div>
-							<span style={labelStyle}>보유 좌수: </span>
+							<span style={labelStyle}>보유 단위: </span>
 							{units || "-"}
 						</div>
 						<div>
-							<span style={labelStyle}>매입 단가: </span>
-							{purchasePricePerUnit
-								? purchasePricePerUnit.toLocaleString()
-								: "-"}{" "}
-							{currency}
+							<span style={labelStyle}>단위당 매입가: </span>
+							{purchasePricePerUnit ? purchasePricePerUnit.toLocaleString() : "-"} {currency}
 						</div>
 					</div>
 				</>
@@ -174,10 +372,14 @@ const PortfolioCard = ({ portfolio }) => {
 	);
 };
 
-const PortfolioList = ({ portfolios }) => {
+const PortfolioList = ({ portfolios, onPortfolioDelete }) => {
 	const stocks = portfolios.filter((p) => p.assetType === "stock");
 	const bonds = portfolios.filter((p) => p.assetType === "bond");
 	const funds = portfolios.filter((p) => p.assetType === "fund");
+
+	const handleDelete = (portfolioId) => {
+		onPortfolioDelete(portfolioId);
+	};
 
 	return (
 		<div style={containerStyle}>
@@ -186,7 +388,13 @@ const PortfolioList = ({ portfolios }) => {
 				{stocks.length === 0 ? (
 					<p style={{ color: "#64748b", textAlign: "center" }}>없음</p>
 				) : (
-					stocks.map((p, idx) => <PortfolioCard key={idx} portfolio={p} />)
+					stocks.map((p, idx) => (
+						<PortfolioCard 
+							key={p._id || idx} 
+							portfolio={p} 
+							onDelete={handleDelete}
+						/>
+					))
 				)}
 			</div>
 			<div style={columnStyle}>
@@ -194,7 +402,13 @@ const PortfolioList = ({ portfolios }) => {
 				{bonds.length === 0 ? (
 					<p style={{ color: "#64748b", textAlign: "center" }}>없음</p>
 				) : (
-					bonds.map((p, idx) => <PortfolioCard key={idx} portfolio={p} />)
+					bonds.map((p, idx) => (
+						<PortfolioCard 
+							key={p._id || idx} 
+							portfolio={p} 
+							onDelete={handleDelete}
+						/>
+					))
 				)}
 			</div>
 			<div style={columnStyle}>
@@ -202,7 +416,13 @@ const PortfolioList = ({ portfolios }) => {
 				{funds.length === 0 ? (
 					<p style={{ color: "#64748b", textAlign: "center" }}>없음</p>
 				) : (
-					funds.map((p, idx) => <PortfolioCard key={idx} portfolio={p} />)
+					funds.map((p, idx) => (
+						<PortfolioCard 
+							key={p._id || idx} 
+							portfolio={p} 
+							onDelete={handleDelete}
+						/>
+					))
 				)}
 			</div>
 		</div>

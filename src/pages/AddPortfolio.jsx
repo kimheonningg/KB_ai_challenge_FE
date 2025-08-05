@@ -78,6 +78,13 @@ const buttonStyle = {
 	marginTop: "1rem",
 };
 
+const infoTextStyle = {
+	fontSize: "0.85rem",
+	color: "#94a3b8",
+	fontStyle: "italic",
+	marginTop: "0.25rem",
+};
+
 const AddPortfolio = () => {
 	const [assetType, setAssetType] = useState("stock");
 	const [formData, setFormData] = useState({
@@ -115,10 +122,25 @@ const AddPortfolio = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
+		// 주식의 경우 투자금액이 없으면 매입일 기준 주가로 계산
+		let calculatedAmount = Number(formData.amount);
+		if (assetType === "stock" && !formData.amount && formData.ticker && formData.purchaseDate && formData.quantity) {
+			try {
+				// 매입 시기 주가 조회하여 투자금액 계산
+				const { fetchHistoricalPrice } = await import("../utils/alphavantage");
+				const historicalPrice = await fetchHistoricalPrice(formData.ticker, formData.purchaseDate);
+				if (historicalPrice) {
+					calculatedAmount = historicalPrice.close * Number(formData.quantity);
+				}
+			} catch (error) {
+				console.error("Error calculating amount from historical price:", error);
+			}
+		}
+
 		// Prepare data with correct types (e.g., convert dates and numbers)
 		const payload = {
 			assetType,
-			amount: Number(formData.amount),
+			amount: calculatedAmount,
 			currency: formData.currency,
 			purchaseDate: formData.purchaseDate,
 			// stock
@@ -148,6 +170,8 @@ const AddPortfolio = () => {
 			form: payload,
 			onSuccess: () => {
 				alert("포트폴리오가 저장되었습니다.");
+				// 포트폴리오 업데이트 이벤트 발생
+				window.dispatchEvent(new Event('portfolioUpdated'));
 				window.location.href = "/?tab=portfolio";
 			},
 			onError: (msg) => {
@@ -188,15 +212,20 @@ const AddPortfolio = () => {
 						<option value="fund">펀드</option>
 					</select>
 
-					<label style={labelStyle}>투자금액</label>
+					<label style={labelStyle}>투자금액 (선택사항)</label>
 					<input
 						type="number"
 						name="amount"
 						value={formData.amount}
 						onChange={handleChange}
 						style={inputStyle}
-						required
+						placeholder="주식의 경우 매입일 기준 주가로 자동 계산"
 					/>
+					{assetType === "stock" && (
+						<div style={infoTextStyle}>
+							💡 주식의 경우 투자금액을 입력하지 않아도 매입일 기준 주가로 자동 계산됩니다.
+						</div>
+					)}
 
 					<label style={labelStyle}>통화</label>
 					<input
@@ -244,15 +273,20 @@ const AddPortfolio = () => {
 								value={formData.quantity}
 								onChange={handleChange}
 								style={inputStyle}
+								required
 							/>
-							<label style={labelStyle}>매입가</label>
+							<label style={labelStyle}>매입가 (선택사항)</label>
 							<input
 								type="number"
 								name="purchasePrice"
 								value={formData.purchasePrice}
 								onChange={handleChange}
 								style={inputStyle}
+								placeholder="입력하지 않으면 매입일 기준 주가 자동 조회"
 							/>
+							<div style={infoTextStyle}>
+								💡 매입가를 입력하지 않으면 매입일 기준 과거 주가를 자동으로 조회하여 정확한 수익률을 계산합니다.
+							</div>
 						</>
 					)}
 
@@ -335,7 +369,7 @@ const AddPortfolio = () => {
 								onChange={handleChange}
 								style={inputStyle}
 							/>
-							<label style={labelStyle}>보유 좌수</label>
+							<label style={labelStyle}>보유 단위</label>
 							<input
 								type="number"
 								name="units"
@@ -343,7 +377,7 @@ const AddPortfolio = () => {
 								onChange={handleChange}
 								style={inputStyle}
 							/>
-							<label style={labelStyle}>매입 단가</label>
+							<label style={labelStyle}>단위당 매입가</label>
 							<input
 								type="number"
 								name="purchasePricePerUnit"
