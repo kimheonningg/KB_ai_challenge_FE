@@ -159,7 +159,8 @@ const AIAssistantDashboard = () => {
 					boxShadow: "0 6px 20px rgb(16 16 39 / 0.15)",
 					display: "flex",
 					flexDirection: "column",
-					minHeight: "calc(100vh - 80px)",
+					// minHeight: "calc(100vh - 80px)",
+					height: "610px",
 					fontFamily: "'Inter', sans-serif",
 					overflowY: "auto",
 				}}

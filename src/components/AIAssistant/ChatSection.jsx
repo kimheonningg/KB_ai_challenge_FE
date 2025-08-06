@@ -88,7 +88,7 @@ const ChatSection = ({ messages: initialMessages, input, setInput }) => {
 				flexDirection: "column",
 				gap: 12,
 				boxShadow: "0 6px 20px rgb(16 16 39 / 0.15)",
-				overflow: "hidden",
+				height: "100%",
 			}}
 		>
 			<h3
@@ -154,6 +154,7 @@ const ChatSection = ({ messages: initialMessages, input, setInput }) => {
 					display: "flex",
 					flexDirection: "column",
 					gap: 8,
+					minHeight: 0,
 				}}
 			>
 				{messages.map(({ id, from, text }) => (
