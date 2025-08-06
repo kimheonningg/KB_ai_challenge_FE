@@ -53,21 +53,22 @@ const iconStyle = {
 	height: 22,
 };
 
-const InsightsSection = ({ onInsight, onReport, onRisk }) => {
+const InsightsSection = ({ onReport, onRiskRebalance, onSimulate }) => {
 	return (
 		<section style={containerStyle}>
 			<h3 style={headerStyle}>
 				<span style={iconStyle}>📊</span> 인사이트 및 투자 전략 제공
 			</h3>
 			<div style={{ display: "flex", gap: 16 }}>
-				<button style={buttonStyle} onClick={onInsight}>
-					인사이트 제공
-				</button>
 				<button style={buttonStyle} onClick={onReport}>
 					자동 리포트 생성
 				</button>
-				<button style={buttonStyle} onClick={onRisk}>
-					위험 신호 감지
+				<button style={buttonStyle} onClick={onRiskRebalance}>
+					위험 신호 감지 및 <br />
+					리밸런싱
+				</button>
+				<button style={buttonStyle} onClick={onSimulate}>
+					주가 변동 시뮬레이션
 				</button>
 			</div>
 		</section>

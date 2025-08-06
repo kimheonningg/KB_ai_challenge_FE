@@ -2,51 +2,13 @@ import React, { useState, useEffect } from "react";
 import PortfolioSummarySection from "./AIAssistant/PortfolioSummarySection";
 import InsightsSection from "./AIAssistant/InsightsSection";
 import ChatSection from "./AIAssistant/ChatSection";
-import { fetchAllPortfolios, calculatePortfolioReturns } from "../utils/portfolio";
-
-const messagesInitial = [
-	{
-		id: 1,
-		from: "user",
-		text: "삼성전자 주식에 대한 분석 부탁드립니다.",
-	},
-	{
-		id: 2,
-		from: "ai",
-		text: (
-			<>
-				삼성전자(005930) 분석 결과입니다:
-				<br />
-				<strong>📊 기술적 분석</strong>: 현재 지지선 근처에서 반등 신호
-				<br />
-				<strong>💰 재무 건전성</strong>: 양호한 현금흐름과 부채비율
-				<br />
-				<strong>🌐 시장 전망</strong>: 메모리 반도체 회복세 기대
-				<br />
-				추가 상세 분석이 필요하시면 말씀해 주세요!
-			</>
-		),
-	},
-	{
-		id: 3,
-		from: "user",
-		text: "🚀 성장주 기회에 대해 자세히 알려주세요.",
-	},
-	{
-		id: 4,
-		from: "ai",
-		text: (
-			<>
-				🚀 성장주 기회에 대한 상세 분석을 진행하겠습니다.
-				<br />
-				📈 관련 데이터와 차트를 준비 중입니다...
-			</>
-		),
-	},
-];
+import {
+	fetchAllPortfolios,
+	calculatePortfolioReturns,
+} from "../utils/portfolio";
 
 const AIAssistantDashboard = () => {
-	const [messages, setMessages] = useState(messagesInitial);
+	const [messages, setMessages] = useState("");
 	const [input, setInput] = useState("");
 	const [portfolioData, setPortfolioData] = useState({
 		totalAsset: "₩0",
@@ -112,9 +74,9 @@ const AIAssistantDashboard = () => {
 			loadPortfolioData();
 		};
 
-		window.addEventListener('portfolioUpdated', handlePortfolioUpdate);
+		window.addEventListener("portfolioUpdated", handlePortfolioUpdate);
 		return () => {
-			window.removeEventListener('portfolioUpdated', handlePortfolioUpdate);
+			window.removeEventListener("portfolioUpdated", handlePortfolioUpdate);
 		};
 	}, []);
 
@@ -128,11 +90,12 @@ const AIAssistantDashboard = () => {
 		// TODO
 	};
 
-	const onInsight = () => alert("인사이트 제공 기능 호출");
 	const onReport = () => {
 		window.location.href = "/create_report";
 	};
 	const onRisk = () => alert("위험 신호 감지 기능 호출");
+
+	const onSimulate = () => alert("주가 변동 시뮬레이션 기능호출");
 
 	return (
 		<div
@@ -165,23 +128,25 @@ const AIAssistantDashboard = () => {
 				}}
 			>
 				{loading ? (
-					<div style={{ 
-						display: "flex", 
-						justifyContent: "center", 
-						alignItems: "center", 
-						height: "200px",
-						color: "#e0e7ff",
-						fontSize: "1.1rem"
-					}}>
+					<div
+						style={{
+							display: "flex",
+							justifyContent: "center",
+							alignItems: "center",
+							height: "200px",
+							color: "#e0e7ff",
+							fontSize: "1.1rem",
+						}}
+					>
 						포트폴리오 데이터를 불러오는 중...
 					</div>
 				) : (
 					<PortfolioSummarySection data={portfolioData} />
 				)}
 				<InsightsSection
-					onInsight={onInsight}
 					onReport={onReport}
 					onRisk={onRisk}
+					onSimulate={onSimulate}
 				/>
 			</div>
 			<aside
