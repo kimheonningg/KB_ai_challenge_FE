@@ -53,6 +53,7 @@ const fieldRowStyle = {
 	justifyContent: "space-between",
 	fontSize: "0.9rem",
 	color: "#cbd5e1",
+	paddingTop: "10px"
 };
 
 const labelStyle = {
@@ -70,23 +71,44 @@ const returnStyle = {
 	marginTop: "0.5rem",
 };
 
+const trashIconStyle = {
+	cursor: "pointer",
+	fontSize: "1.5rem",
+	color: "#ef4444",
+	userSelect: "none",
+	transition: "color 0.2s ease",
+};
+
 const deleteButtonStyle = {
+	background: "linear-gradient(45deg, #ef4444, #dc2626)",
+	border: "none",
+	borderRadius: "0.5rem",
+	color: "white",
+	padding: "0.3rem 0.7rem",
+	marginRight: "0.1rem",
+	cursor: "pointer",
+	fontWeight: "600",
+	fontSize: "0.9rem",
+};
+
+const deleteGoBackButtonStyle = {
+	backgroundColor: "#4ade80",
+	border: "1px solid #64748b",
+	borderRadius: "0.5rem",
+	color: "#64748b",
+	padding: "0.3rem 0.7rem",
+	cursor: "pointer",
+	fontWeight: "600",
+	fontSize: "0.9rem",
+};
+
+const deleteWrapperStyle = {
 	position: "absolute",
 	top: "0.5rem",
 	right: "0.5rem",
-	background: "linear-gradient(45deg, #ef4444, #dc2626)",
-	border: "none",
-	borderRadius: "50%",
-	width: "2rem",
-	height: "2rem",
-	color: "white",
-	cursor: "pointer",
 	display: "flex",
 	alignItems: "center",
-	justifyContent: "center",
-	fontSize: "1rem",
-	transition: "all 0.2s ease",
-	boxShadow: "0 2px 8px rgba(239, 68, 68, 0.3)",
+	gap: "0.3rem",
 };
 
 const PortfolioCard = ({ portfolio, onDelete }) => {
@@ -96,6 +118,7 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 	const [currentPrice, setCurrentPrice] = useState(null);
 	const [loading, setLoading] = useState(true);
 	const [deleting, setDeleting] = useState(false);
+	const [deleteMode, setDeleteMode] = useState(false);
 
 	const {
 		_id,
@@ -189,11 +212,18 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 		calculateValue();
 	}, [portfolio]);
 
-	const handleDelete = async () => {
-		if (!window.confirm("정말로 이 포트폴리오 항목을 삭제하시겠습니까?")) {
-			return;
-		}
+	const toggleDeleteMode = (e) => {
+		e.stopPropagation();
+		setDeleteMode(!deleteMode);
+	};
 
+	const cancelDeleteMode = (e) => {
+		e.stopPropagation();
+		setDeleteMode(false);
+	};
+
+	const handleDelete = async (e) => {
+		e.stopPropagation();
 		setDeleting(true);
 		try {
 			await deletePortfolio({
@@ -213,20 +243,41 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 			alert("삭제 중 오류가 발생했습니다. 다시 시도해주세요.");
 		} finally {
 			setDeleting(false);
+			setDeleteMode(false);
 		}
 	};
 
 	return (
 		<div style={cardStyle}>
 			{/* 삭제 버튼 */}
-			<button
-				style={deleteButtonStyle}
-				onClick={handleDelete}
-				disabled={deleting}
-				title="삭제"
-			>
-				{deleting ? "..." : "×"}
-			</button>
+			<div style={deleteWrapperStyle}>
+				{!deleteMode ? (
+					<span
+						className="material-icons"
+						style={trashIconStyle}
+						onClick={toggleDeleteMode}
+						title="삭제"
+					>
+						delete
+					</span>
+				) : (
+					<>
+						<button
+							style={deleteButtonStyle}
+							onClick={handleDelete}
+							disabled={deleting}
+						>
+							{deleting ? "삭제 중..." : "삭제하기"}
+						</button>
+						<button
+							style={deleteGoBackButtonStyle}
+							onClick={cancelDeleteMode}
+						>
+							돌아가기
+						</button>
+					</>
+				)}
+			</div>
 
 			<div style={{ fontWeight: "700", fontSize: "1.1rem", color: "#93c5fd" }}>
 				{assetType === "stock" && `${ticker || "N/A"}`}
