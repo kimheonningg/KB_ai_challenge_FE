@@ -94,7 +94,6 @@ const AddPortfolio = () => {
 		ticker: "",
 		exchange: "",
 		quantity: "",
-		purchasePrice: "",
 		issuer: "",
 		maturityDate: "",
 		faceValue: "",
@@ -122,18 +121,30 @@ const AddPortfolio = () => {
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 
-		// 주식의 경우 투자금액이 없으면 매입일 기준 주가로 계산
-		let calculatedAmount = Number(formData.amount);
-		if (assetType === "stock" && !formData.amount && formData.ticker && formData.purchaseDate && formData.quantity) {
+		// 주식의 경우 매입일 기준 주가로 투자금액 계산
+		let calculatedAmount = 0;
+		if (assetType === "stock" && formData.ticker && formData.purchaseDate && formData.quantity) {
 			try {
 				// 매입 시기 주가 조회하여 투자금액 계산
 				const { fetchHistoricalPrice } = await import("../utils/alphavantage");
 				const historicalPrice = await fetchHistoricalPrice(formData.ticker, formData.purchaseDate);
-				if (historicalPrice) {
+				if (historicalPrice && historicalPrice.close) {
 					calculatedAmount = historicalPrice.close * Number(formData.quantity);
+				} else {
+					alert("매입일 기준 주가를 조회할 수 없습니다. 다시 시도해주세요.");
+					return;
 				}
 			} catch (error) {
 				console.error("Error calculating amount from historical price:", error);
+				alert("매입일 기준 주가 조회 중 오류가 발생했습니다. 다시 시도해주세요.");
+				return;
+			}
+		} else if (assetType === "bond" || assetType === "fund") {
+			// 채권과 펀드는 입력된 투자금액 사용
+			calculatedAmount = Number(formData.amount);
+			if (!calculatedAmount || calculatedAmount <= 0) {
+				alert("투자금액을 입력해주세요.");
+				return;
 			}
 		}
 
@@ -147,9 +158,6 @@ const AddPortfolio = () => {
 			ticker: formData.ticker || undefined,
 			exchange: formData.exchange || undefined,
 			quantity: formData.quantity ? Number(formData.quantity) : undefined,
-			purchasePrice: formData.purchasePrice
-				? Number(formData.purchasePrice)
-				: undefined,
 			// bond
 			issuer: formData.issuer || undefined,
 			maturityDate: formData.maturityDate || undefined,
@@ -170,8 +178,6 @@ const AddPortfolio = () => {
 			form: payload,
 			onSuccess: () => {
 				alert("포트폴리오가 저장되었습니다.");
-				// 포트폴리오 업데이트 이벤트 발생
-				window.dispatchEvent(new Event('portfolioUpdated'));
 				window.location.href = "/?tab=portfolio";
 			},
 			onError: (msg) => {
@@ -211,21 +217,6 @@ const AddPortfolio = () => {
 						<option value="bond">채권</option>
 						<option value="fund">펀드</option>
 					</select>
-
-					<label style={labelStyle}>투자금액 (선택사항)</label>
-					<input
-						type="number"
-						name="amount"
-						value={formData.amount}
-						onChange={handleChange}
-						style={inputStyle}
-						placeholder="주식의 경우 매입일 기준 주가로 자동 계산"
-					/>
-					{assetType === "stock" && (
-						<div style={infoTextStyle}>
-							💡 주식의 경우 투자금액을 입력하지 않아도 매입일 기준 주가로 자동 계산됩니다.
-						</div>
-					)}
 
 					<label style={labelStyle}>통화</label>
 					<input
@@ -275,23 +266,23 @@ const AddPortfolio = () => {
 								style={inputStyle}
 								required
 							/>
-							<label style={labelStyle}>매입가 (선택사항)</label>
-							<input
-								type="number"
-								name="purchasePrice"
-								value={formData.purchasePrice}
-								onChange={handleChange}
-								style={inputStyle}
-								placeholder="입력하지 않으면 매입일 기준 주가 자동 조회"
-							/>
 							<div style={infoTextStyle}>
-								💡 매입가를 입력하지 않으면 매입일 기준 과거 주가를 자동으로 조회하여 정확한 수익률을 계산합니다.
+								💡 매입일 기준 과거 주가를 자동으로 조회하여 정확한 투자금액과 수익률을 계산합니다.
 							</div>
 						</>
 					)}
 
 					{assetType === "bond" && (
 						<>
+							<label style={labelStyle}>투자금액</label>
+							<input
+								type="number"
+								name="amount"
+								value={formData.amount || ""}
+								onChange={handleChange}
+								style={inputStyle}
+								required
+							/>
 							<label style={labelStyle}>발행기관</label>
 							<input
 								type="text"
@@ -342,6 +333,15 @@ const AddPortfolio = () => {
 
 					{assetType === "fund" && (
 						<>
+							<label style={labelStyle}>투자금액</label>
+							<input
+								type="number"
+								name="amount"
+								value={formData.amount || ""}
+								onChange={handleChange}
+								style={inputStyle}
+								required
+							/>
 							<label style={labelStyle}>펀드명</label>
 							<input
 								type="text"

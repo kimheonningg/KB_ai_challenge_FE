@@ -133,21 +133,28 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 					// 주식의 경우 과거 주가와 현재 주가 비교
 					const qty = quantity || 0;
 					
-					// 현재 주가 조회
-					const currentQuote = await fetchQuote(ticker);
-					currentPriceValue = currentQuote && currentQuote["05. price"] 
-						? parseFloat(currentQuote["05. price"]) 
-						: 0;
+					try {
+						// 현재 주가 조회
+						const currentQuote = await fetchQuote(ticker);
+						currentPriceValue = currentQuote && currentQuote["05. price"] 
+							? parseFloat(currentQuote["05. price"]) 
+							: 0;
 
-					// 매입 시기 주가 조회
-					const historicalPrice = await fetchHistoricalPrice(ticker, purchaseDate);
-					purchasePriceValue = historicalPrice ? historicalPrice.close : 0;
+						// 매입 시기 주가 조회
+						const historicalPrice = await fetchHistoricalPrice(ticker, purchaseDate);
+						purchasePriceValue = historicalPrice ? historicalPrice.close : 0;
 
-					if (currentPriceValue > 0 && purchasePriceValue > 0 && qty > 0) {
-						// 정확한 계산: 보유수량 × 현재가 = 현재가치, 보유수량 × 매입가 = 투자원금
-						currentVal = currentPriceValue * qty;
-						cost = purchasePriceValue * qty;
-					} else {
+						if (currentPriceValue > 0 && purchasePriceValue > 0 && qty > 0) {
+							// 정확한 계산: 보유수량 × 현재가 = 현재가치, 보유수량 × 매입가 = 투자원금
+							currentVal = currentPriceValue * qty;
+							cost = purchasePriceValue * qty;
+						} else {
+							// API 호출 실패시 기존 투자금액 사용
+							currentVal = amount;
+							cost = amount;
+						}
+					} catch (apiError) {
+						console.warn(`API 호출 실패 (${ticker}):`, apiError.message);
 						// API 호출 실패시 기존 투자금액 사용
 						currentVal = amount;
 						cost = amount;
@@ -308,11 +315,11 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 							{quantity || "-"}
 						</div>
 					</div>
-					{manualPurchasePrice && (
+					{!loading && purchasePrice && (
 						<div style={fieldRowStyle}>
 							<div>
-								<span style={labelStyle}>입력 매입가: </span>
-								{manualPurchasePrice.toLocaleString()} {currency}
+								<span style={labelStyle}>매입일 기준 주가: </span>
+								{purchasePrice.toLocaleString()} {currency}
 							</div>
 						</div>
 					)}
