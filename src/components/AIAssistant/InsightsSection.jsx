@@ -67,7 +67,7 @@ const InsightsSection = ({ onReport, onRiskRebalance, onSimulate }) => {
 					위험 신호 감지 및 <br />
 					리밸런싱
 				</button>
-				<button style={buttonStyle} onClick={onSimulate}>
+            <button style={buttonStyle} onClick={onSimulate}>
 					주가 변동 시뮬레이션
 				</button>
 			</div>

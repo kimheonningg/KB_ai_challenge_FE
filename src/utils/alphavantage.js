@@ -10,6 +10,8 @@ const MIN_CALL_INTERVAL = 30 * 1000; // 30초 (분당 2회 = 30초 간격)
 // 캐시 시스템 - 30초간 유효
 const CACHE_DURATION = 30 * 1000; // 30초
 const cache = new Map();
+const PERSIST_PREFIX = "av_cache:"; // localStorage prefix
+const PERSIST_TTL_MS = 24 * 60 * 60 * 1000; // 24시간 (표시 유지 목적)
 
 // 캐시 유틸리티 함수들
 function getCacheKey(functionName, symbol, date = null) {
@@ -29,6 +31,38 @@ function setCachedData(key, data) {
 		data,
 		timestamp: Date.now()
 	});
+}
+
+// 영속 캐시(localStorage)
+function setPersistentCache(key, data) {
+    try {
+        const payload = {
+            data,
+            timestamp: Date.now(),
+        };
+        localStorage.setItem(PERSIST_PREFIX + key, JSON.stringify(payload));
+    } catch (err) {
+        // 저장 실패는 무시 (스토리지 용량 등)
+        console.warn("Persistent cache set failed", err);
+    }
+}
+
+function getPersistentCache(key, { ignoreTTL = true } = {}) {
+    try {
+        const raw = localStorage.getItem(PERSIST_PREFIX + key);
+        if (!raw) return null;
+        const payload = JSON.parse(raw);
+        if (!payload || typeof payload !== "object") return null;
+
+        if (!ignoreTTL) {
+            const isExpired = Date.now() - payload.timestamp > PERSIST_TTL_MS;
+            if (isExpired) return null;
+        }
+        return payload.data;
+    } catch (err) {
+        console.warn("Persistent cache get failed", err);
+        return null;
+    }
 }
 
 async function makeApiCall(params) {
@@ -74,14 +108,25 @@ export async function fetchDailyStockPrice(symbol) {
 	}
 	
 	console.log(`새로운 API 호출: ${symbol}`);
-	const data = await makeApiCall({
-		function: "TIME_SERIES_DAILY",
-		symbol,
-		apikey: API_KEY,
-	});
-	
-	setCachedData(cacheKey, data);
-	return data;
+    try {
+        const data = await makeApiCall({
+            function: "TIME_SERIES_DAILY",
+            symbol,
+            apikey: API_KEY,
+        });
+        setCachedData(cacheKey, data);
+        setPersistentCache(cacheKey, data);
+        return data;
+    } catch (err) {
+        // 실패 시 마지막으로 성공한 값 사용 (TTL 무시하고 계속 표시 목적)
+        const persisted = getPersistentCache(cacheKey, { ignoreTTL: true });
+        if (persisted) {
+            console.warn("API 실패로 영속 캐시 사용(daily):", symbol);
+            setCachedData(cacheKey, persisted); // 메모리 캐시에도 반영
+            return persisted;
+        }
+        throw err;
+    }
 }
 
 export async function fetchQuote(symbol) {
@@ -94,15 +139,25 @@ export async function fetchQuote(symbol) {
 	}
 	
 	console.log(`새로운 API 호출: ${symbol}`);
-	const data = await makeApiCall({
-		function: "GLOBAL_QUOTE",
-		symbol,
-		apikey: API_KEY,
-	});
-	
-	const quote = data["Global Quote"];
-	setCachedData(cacheKey, quote);
-	return quote;
+    try {
+        const data = await makeApiCall({
+            function: "GLOBAL_QUOTE",
+            symbol,
+            apikey: API_KEY,
+        });
+        const quote = data["Global Quote"];
+        setCachedData(cacheKey, quote);
+        setPersistentCache(cacheKey, quote);
+        return quote;
+    } catch (err) {
+        const persisted = getPersistentCache(cacheKey, { ignoreTTL: true });
+        if (persisted) {
+            console.warn("API 실패로 영속 캐시 사용(quote):", symbol);
+            setCachedData(cacheKey, persisted);
+            return persisted;
+        }
+        throw err;
+    }
 }
 
 // 과거 주가 데이터 가져오기 (매입 시기 기준)
@@ -117,11 +172,11 @@ export async function fetchHistoricalPrice(symbol, date) {
 		}
 		
 		console.log(`새로운 과거 데이터 API 호출: ${symbol} (${date})`);
-		const data = await makeApiCall({
-			function: "TIME_SERIES_DAILY",
-			symbol,
-			apikey: API_KEY,
-		});
+        const data = await makeApiCall({
+            function: "TIME_SERIES_DAILY",
+            symbol,
+            apikey: API_KEY,
+        });
 
 		const timeSeriesData = data["Time Series (Daily)"];
 		if (!timeSeriesData) {
@@ -161,11 +216,20 @@ export async function fetchHistoricalPrice(symbol, date) {
 			};
 		}
 
-		setCachedData(cacheKey, result);
+        setCachedData(cacheKey, result);
+        setPersistentCache(cacheKey, result);
 		return result;
 	} catch (error) {
 		console.error("Error fetching historical price:", error);
-		return null;
+        // 실패 시 마지막으로 성공한 값 사용
+        const cacheKey = getCacheKey('historical', symbol, date);
+        const persisted = getPersistentCache(cacheKey, { ignoreTTL: true });
+        if (persisted) {
+            console.warn("API 실패로 영속 캐시 사용(historical):", symbol, date);
+            setCachedData(cacheKey, persisted);
+            return persisted;
+        }
+        return null;
 	}
 }
 

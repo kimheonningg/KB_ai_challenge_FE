@@ -95,7 +95,10 @@ const AIAssistantDashboard = () => {
 	};
 	const onRisk = () => alert("위험 신호 감지 기능 호출");
 
-	const onSimulate = () => alert("주가 변동 시뮬레이션 기능호출");
+
+	const onSimulate = () => {
+		window.location.href = "/stock_simulation";
+	};
 
 	return (
 		<div
