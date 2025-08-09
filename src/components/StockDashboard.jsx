@@ -375,7 +375,14 @@ const StockDashboard = () => {
 				</div>
 			)}
 
-			<div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+			<div
+				style={{
+					display: "flex",
+					flexDirection: "column",
+					gap: "1.5rem",
+					marginTop: "1.5rem",
+				}}
+			>
 				{stocks.map((stock) => (
 					<StockInfo
 						key={stock["01. symbol"]}

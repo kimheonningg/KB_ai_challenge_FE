@@ -53,7 +53,7 @@ const fieldRowStyle = {
 	justifyContent: "space-between",
 	fontSize: "0.9rem",
 	color: "#cbd5e1",
-	paddingTop: "10px"
+	paddingTop: "10px",
 };
 
 const labelStyle = {
@@ -155,16 +155,20 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 				if (assetType === "stock" && ticker) {
 					// 주식의 경우 과거 주가와 현재 주가 비교
 					const qty = quantity || 0;
-					
+
 					try {
 						// 현재 주가 조회
 						const currentQuote = await fetchQuote(ticker);
-						currentPriceValue = currentQuote && currentQuote["05. price"] 
-							? parseFloat(currentQuote["05. price"]) 
-							: 0;
+						currentPriceValue =
+							currentQuote && currentQuote["05. price"]
+								? parseFloat(currentQuote["05. price"])
+								: 0;
 
 						// 매입 시기 주가 조회
-						const historicalPrice = await fetchHistoricalPrice(ticker, purchaseDate);
+						const historicalPrice = await fetchHistoricalPrice(
+							ticker,
+							purchaseDate
+						);
 						purchasePriceValue = historicalPrice ? historicalPrice.close : 0;
 
 						if (currentPriceValue > 0 && purchasePriceValue > 0 && qty > 0) {
@@ -201,7 +205,10 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 				const returnPct = cost > 0 ? ((currentVal - cost) / cost) * 100 : 0;
 				setReturnPercent(returnPct);
 			} catch (error) {
-				console.error(`Error calculating value for ${ticker || assetType}:`, error);
+				console.error(
+					`Error calculating value for ${ticker || assetType}:`,
+					error
+				);
 				setCurrentValue(amount);
 				setReturnPercent(0);
 			} finally {
@@ -227,10 +234,9 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 		setDeleting(true);
 		try {
 			await deletePortfolio({
-				portfolioId: _id,
+				assetType,
+				id: _id,
 				onSuccess: () => {
-					console.log("Delete success for portfolio:", _id);
-					// 삭제 성공 시 즉시 UI에서 제거
 					onDelete(_id);
 				},
 				onError: (msg) => {
@@ -269,10 +275,7 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 						>
 							{deleting ? "삭제 중..." : "삭제하기"}
 						</button>
-						<button
-							style={deleteGoBackButtonStyle}
-							onClick={cancelDeleteMode}
-						>
+						<button style={deleteGoBackButtonStyle} onClick={cancelDeleteMode}>
 							돌아가기
 						</button>
 					</>
@@ -287,10 +290,9 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 			<div style={fieldRowStyle}>
 				<div>
 					<span style={labelStyle}>투자원금: </span>
-					{!loading && assetType === "stock" && purchasePrice && quantity ? 
-						`${(purchasePrice * quantity).toLocaleString()} ${currency}` :
-						`${amount.toLocaleString()} ${currency}`
-					}
+					{!loading && assetType === "stock" && purchasePrice && quantity
+						? `${(purchasePrice * quantity).toLocaleString()} ${currency}`
+						: `${amount.toLocaleString()} ${currency}`}
 				</div>
 				<div>
 					<span style={labelStyle}>매수일: </span>
@@ -309,14 +311,15 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 					</div>
 					<div>
 						<span style={labelStyle}>수익률: </span>
-						<span 
-							style={{ 
-								color: returnPercent >= 0 ? "#10b981" : "#ef4444", 
+						<span
+							style={{
+								color: returnPercent >= 0 ? "#10b981" : "#ef4444",
 								fontWeight: "700",
-								fontSize: "1rem"
+								fontSize: "1rem",
 							}}
 						>
-							{returnPercent >= 0 ? '+' : ''}{returnPercent.toFixed(1)}%
+							{returnPercent >= 0 ? "+" : ""}
+							{returnPercent.toFixed(1)}%
 						</span>
 					</div>
 				</div>
@@ -333,10 +336,12 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 					</div>
 					<div>
 						<span style={labelStyle}>현재가: </span>
-						<span style={{ 
-							color: currentPrice >= purchasePrice ? "#10b981" : "#ef4444",
-							fontWeight: "600"
-						}}>
+						<span
+							style={{
+								color: currentPrice >= purchasePrice ? "#10b981" : "#ef4444",
+								fontWeight: "600",
+							}}
+						>
 							{currentPrice.toLocaleString()} {currency}
 						</span>
 					</div>
@@ -344,12 +349,14 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 			)}
 
 			{loading && (
-				<div style={{ 
-					textAlign: "center", 
-					color: "#94a3b8", 
-					fontSize: "0.9rem",
-					padding: "0.5rem"
-				}}>
+				<div
+					style={{
+						textAlign: "center",
+						color: "#94a3b8",
+						fontSize: "0.9rem",
+						padding: "0.5rem",
+					}}
+				>
 					수익률 계산 중...
 				</div>
 			)}
@@ -421,7 +428,10 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 						</div>
 						<div>
 							<span style={labelStyle}>단위당 매입가: </span>
-							{purchasePricePerUnit ? purchasePricePerUnit.toLocaleString() : "-"} {currency}
+							{purchasePricePerUnit
+								? purchasePricePerUnit.toLocaleString()
+								: "-"}{" "}
+							{currency}
 						</div>
 					</div>
 				</>
@@ -447,9 +457,9 @@ const PortfolioList = ({ portfolios, onPortfolioDelete }) => {
 					<p style={{ color: "#64748b", textAlign: "center" }}>없음</p>
 				) : (
 					stocks.map((p, idx) => (
-						<PortfolioCard 
-							key={p._id || idx} 
-							portfolio={p} 
+						<PortfolioCard
+							key={p._id || idx}
+							portfolio={p}
 							onDelete={handleDelete}
 						/>
 					))
@@ -461,9 +471,9 @@ const PortfolioList = ({ portfolios, onPortfolioDelete }) => {
 					<p style={{ color: "#64748b", textAlign: "center" }}>없음</p>
 				) : (
 					bonds.map((p, idx) => (
-						<PortfolioCard 
-							key={p._id || idx} 
-							portfolio={p} 
+						<PortfolioCard
+							key={p._id || idx}
+							portfolio={p}
 							onDelete={handleDelete}
 						/>
 					))
@@ -475,9 +485,9 @@ const PortfolioList = ({ portfolios, onPortfolioDelete }) => {
 					<p style={{ color: "#64748b", textAlign: "center" }}>없음</p>
 				) : (
 					funds.map((p, idx) => (
-						<PortfolioCard 
-							key={p._id || idx} 
-							portfolio={p} 
+						<PortfolioCard
+							key={p._id || idx}
+							portfolio={p}
 							onDelete={handleDelete}
 						/>
 					))

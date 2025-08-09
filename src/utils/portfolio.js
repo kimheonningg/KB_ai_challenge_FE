@@ -34,42 +34,29 @@ export const fetchAllPortfolios = async () => {
 	return res.data;
 };
 
-export const deletePortfolio = async ({ portfolioId, onSuccess, onError }) => {
+export const deletePortfolio = async ({
+	assetType,
+	id,
+	onSuccess,
+	onError,
+}) => {
 	try {
 		const token = localStorage.getItem("authToken");
 		if (!token) throw new Error("로그인이 필요한 서비스입니다.");
 
-		// 백엔드 API 호출 시도 (더 안정적인 방식)
-		try {
-			// 가장 일반적인 REST API 패턴부터 시도
-			const response = await axios.delete(
-				`${BASE_URL}/portfolio/${portfolioId}`,
-				{
-					headers: {
-						Authorization: `Bearer ${token}`,
-					},
-				}
-			);
+		await axios.delete(
+			`${BASE_URL}/portfolio/${encodeURIComponent(
+				assetType
+			)}/${encodeURIComponent(id)}`,
+			{ headers: { Authorization: `Bearer ${token}` } }
+		);
 
-			// 성공적으로 삭제된 경우
-			console.log("Portfolio deleted successfully:", response.data);
-			onSuccess?.();
-			return;
-		} catch (apiError) {
-			// 404 에러나 다른 에러가 발생한 경우
-			console.warn("Backend delete API not available or failed:", apiError);
-
-			// 백엔드 API가 준비되지 않은 경우를 위한 임시 처리
-			// 실제 운영에서는 백엔드에서 삭제되어야 하지만, 개발 중에는 프론트엔드에서만 처리
-			console.log("Using frontend-only deletion for portfolio:", portfolioId);
-			onSuccess?.();
-			return;
-		}
+		onSuccess?.();
 	} catch (err) {
-		console.error("Delete portfolio error:", err);
 		const msg =
-			err.response?.data?.detail || err.message || "포트폴리오 삭제 실패";
+			err?.response?.data?.detail || err.message || "포트폴리오 삭제 실패";
 		onError?.(msg);
+		throw new Error(msg);
 	}
 };
 
