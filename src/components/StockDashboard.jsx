@@ -7,14 +7,15 @@ import { getFavStocks } from "../utils/favstocks";
 const StockDashboard = () => {
 	const [symbolInput, setSymbolInput] = useState("");
 	const [stocks, setStocks] = useState([]);
-	const [loading, setLoading] = useState(false);
+	const [loading, setLoading] = useState(false); // general한 로딩
+	const [initLoading, setInitLoading] = useState(false); // 초기 즐겨찾기 로딩
 	const [recent, setRecent] = useState([]);
 	const [suggestions, setSuggestions] = useState([]);
 
 	useEffect(() => {
 		(async () => {
 			try {
-				setLoading(true);
+				setInitLoading(true);
 				const tickers = await getFavStocks();
 				if (!tickers.length) return;
 
@@ -31,9 +32,8 @@ const StockDashboard = () => {
 					.map((r) => ({ ...r.value, _favorited: true }));
 
 				if (loaded.length) setStocks((prev) => [...prev, ...loaded]);
-				setRecent((prev) => [...tickers.slice(0, 5), ...prev].slice(0, 5));
 			} finally {
-				setLoading(false);
+				setInitLoading(false);
 			}
 		})();
 	}, []);
@@ -51,11 +51,21 @@ const StockDashboard = () => {
 	const handleSuggestionClick = (symbol) => {
 		setSymbolInput(symbol);
 		setSuggestions([]);
+		addStock(symbol);
 	};
 
 	const addStock = async () => {
 		const trimmed = symbolInput.trim().toUpperCase();
 		if (!trimmed) return;
+
+		if (stocks.some((s) => s["01. symbol"] === trimmed)) {
+			setRecent((prev) =>
+				[trimmed, ...prev.filter((s) => s !== trimmed)].slice(0, 5)
+			);
+			setSymbolInput("");
+			setSuggestions([]);
+			return;
+		}
 
 		setLoading(true);
 		try {
@@ -114,6 +124,7 @@ const StockDashboard = () => {
 						// maxWidth: "960px",
 						backdropFilter: "blur(10px)",
 						transition: "all 0.3s ease",
+						zIndex: 20,
 					}}
 					onMouseEnter={(e) => {
 						e.currentTarget.style.borderColor = "rgba(59, 130, 246, 0.6)";
@@ -154,7 +165,7 @@ const StockDashboard = () => {
 							letterSpacing: "0.025em",
 						}}
 					/>
-					{suggestions.length > 0 && (
+					{suggestions.length > 0 && !loading && (
 						<ul
 							style={{
 								position: "absolute",
@@ -166,7 +177,7 @@ const StockDashboard = () => {
 								border: "1px solid rgba(59, 130, 246, 0.3)",
 								borderTop: "none",
 								borderRadius: "0 0 16px 16px",
-								zIndex: 10,
+								zIndex: 9999,
 								backdropFilter: "blur(20px)",
 								boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.4)",
 								overflow: "hidden",
@@ -230,6 +241,7 @@ const StockDashboard = () => {
 						transition: "all 0.3s ease",
 						letterSpacing: "0.025em",
 						opacity: loading ? 0.7 : 1,
+						zIndex: 1,
 					}}
 					onMouseEnter={(e) => {
 						if (!loading) {
@@ -259,6 +271,20 @@ const StockDashboard = () => {
 								refresh
 							</span>
 							검색 중...
+						</>
+					) : initLoading ? (
+						<>
+							<span
+								className="material-icons"
+								style={{
+									fontSize: "1rem",
+									marginRight: "0.5rem",
+									animation: "spin 1s linear infinite",
+								}}
+							>
+								refresh
+							</span>
+							로딩 중...
 						</>
 					) : (
 						<>검색</>
@@ -353,7 +379,7 @@ const StockDashboard = () => {
 						alignItems: "center",
 						justifyContent: "center",
 						gap: "0.75rem",
-						marginTop: "1rem",
+						marginTop: "5rem",
 					}}
 				>
 					<span
