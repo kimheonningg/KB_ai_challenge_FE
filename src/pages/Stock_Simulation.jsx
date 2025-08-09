@@ -88,6 +88,8 @@ const StockSimulation = () => {
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [viewMode, setViewMode] = useState(null); // null | 'news' | 'result'
+  const [openOptionsId, setOpenOptionsId] = useState(null); // history item action menu
 
   // FakeNewsRequest form
   const [title, setTitle] = useState("");
@@ -113,8 +115,14 @@ const StockSimulation = () => {
       setError(null);
       try {
         const data = await fetchSimulationHistory();
-        setHistory(data?.simulations || []);
-        if (data?.simulations?.length) setSelected(data.simulations[0]);
+        const sims = (data?.simulations || []).map((s) => {
+          const storedTitle = typeof window !== "undefined" ? localStorage.getItem(`sim_input_title:${s.simulation_id}`) : null;
+          return storedTitle ? { ...s, _input_title: storedTitle } : s;
+        });
+        setHistory(sims);
+        // 최초 로드 시 자동 표시하지 않음
+        setSelected(null);
+        setViewMode(null);
       } catch (e) {
         setError(e.message || "히스토리 조회 실패");
       } finally {
@@ -157,8 +165,16 @@ const StockSimulation = () => {
         confidence_level: confidenceLevel,
       });
       // append to history and select
-      setHistory((prev) => [...prev, res]);
-      setSelected(res);
+      const withTitle = { ...res, _input_title: title };
+      try {
+        if (withTitle?.simulation_id && typeof window !== "undefined") {
+          localStorage.setItem(`sim_input_title:${withTitle.simulation_id}`, title || "");
+        }
+      } catch {}
+      setHistory((prev) => [...prev, withTitle]);
+      setSelected(withTitle);
+      setViewMode(null); // 자동 표시하지 않음
+      setOpenOptionsId(res.simulation_id); // 방금 생성한 항목 옵션 열기
     } catch (e) {
       // 서버의 422 등 상세 오류 메시지 노출
       const detail = e?.response?.data || e?.message || "시뮬레이션 생성 실패";
@@ -188,6 +204,42 @@ const StockSimulation = () => {
     }
   };
 
+  // 히스토리 타이틀 추출: 입력 제목 우선, 없으면 fake_news에서 유추
+  const getHistoryTitle = (item) => {
+    try {
+      if (item?._input_title && String(item._input_title).trim()) return String(item._input_title).trim();
+      try {
+        const ls = typeof window !== "undefined" ? localStorage.getItem(`sim_input_title:${item?.simulation_id}`) : null;
+        if (ls && ls.trim()) return ls.trim();
+      } catch {}
+      const fn = item?.fake_news || item?.FAKE_NEWS;
+      if (!fn || typeof fn !== "object") return null;
+      let title = fn.fake_news_title || fn.TITLE || fn.title || fn.headline || null;
+      if (typeof title === "string" && /^```/.test(title.trim())) title = null;
+      if (title && title.trim()) return title.trim();
+
+      let content = fn.fake_news_content || fn.CONTENT || fn.content || fn.body || null;
+      if (typeof content !== "string") return null;
+
+      let s = content.trim();
+      s = s.replace(/^```[a-zA-Z]*\n?/, "");
+      s = s.replace(/\n?```$/, "");
+      s = s.trim();
+      try {
+        const j = JSON.parse(s);
+        const t = j?.title;
+        if (t && typeof t === "string") return t;
+      } catch (e) {
+        // not JSON; fallback: 첫 줄을 제목으로 사용
+        const firstLine = s.split(/\r?\n/)[0];
+        if (firstLine) return firstLine.slice(0, 140);
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  };
+
   return (
     <div style={pageStyle}>
       <span
@@ -203,8 +255,13 @@ const StockSimulation = () => {
         <div style={headerStyle}>
           <h1 style={titleStyle}>주가 변동 시뮬레이션</h1>
           <button style={primaryBtn} onClick={onGenerate} disabled={loading}>
-            시뮬레이션 생성
-            {loading && <span style={{ marginLeft: 8, ...spinner }} />}
+            {loading ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+                <span style={spinner} /> 생성 중...
+              </span>
+            ) : (
+              "시뮬레이션 생성"
+            )}
           </button>
         </div>
 
@@ -270,17 +327,69 @@ const StockSimulation = () => {
           <div>
             <div style={{ ...card, marginBottom: 16 }}>
               <div style={{ fontWeight: 700, marginBottom: 12, color: "#a5b4fc" }}>시뮬레이션 히스토리</div>
+              {loading && (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, margin: "6px 0 12px", color: "#cbd5e1" }}>
+                  <div style={spinner} />
+                  <span>시뮬레이션 생성 중...</span>
+                </div>
+              )}
               <div>
                 {history.length === 0 && <div style={{ color: "#cbd5e1" }}>기록이 없습니다.</div>}
                 {history.map((item) => (
                   <div
                     key={item.simulation_id}
                     style={listItem}
-                    onClick={() => setSelected(item)}
+                    onClick={() => { setSelected(item); /* 보기 모드는 옵션에서 선택 */ }}
                   >
                     <div>
-                      <div style={{ fontWeight: 700 }}>ID: {item.simulation_id}</div>
+                      <div style={{ fontWeight: 700 }}>
+                        ID: {" "}
+                        <span
+                          style={{ textDecoration: "underline", cursor: "pointer" }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenOptionsId((prev) => (prev === item.simulation_id ? null : item.simulation_id));
+                          }}
+                          title="옵션 열기"
+                        >
+                          {item.simulation_id}
+                        </span>
+                      </div>
+                      {(() => {
+                        const title = getHistoryTitle(item);
+                        return title ? (
+                          <div style={{ color: "#e2e8f0", fontWeight: 600, marginTop: 4, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 520 }}>
+                            {title}
+                          </div>
+                        ) : null;
+                      })()}
                       <div style={{ color: "#94a3b8" }}>{new Date(item.generated_at).toLocaleString()}</div>
+                      {openOptionsId === item.simulation_id && (
+                        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                          <button
+                            style={ghostBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelected(item);
+                              setViewMode("news");
+                              setOpenOptionsId(null);
+                            }}
+                          >
+                            뉴스 보기
+                          </button>
+                          <button
+                            style={ghostBtn}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelected(item);
+                              setViewMode("result");
+                              setOpenOptionsId(null);
+                            }}
+                          >
+                            시뮬레이션 결과 보기
+                          </button>
+                        </div>
+                      )}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
                       <button style={dangerBtn} onClick={(e) => onDelete(item.simulation_id, e)}>삭제</button>
@@ -290,8 +399,15 @@ const StockSimulation = () => {
               </div>
             </div>
 
-            {selected && (
-              <ResultViewer result={selected} />
+            {selected && viewMode === "news" && <NewsViewer result={selected} />}
+            {selected && viewMode === "result" && (
+              loading ? (
+                <div style={{ ...card, display: "flex", alignItems: "center", gap: 12, color: "#cbd5e1" }}>
+                  <div style={spinner} /> 결과를 불러오는 중...
+                </div>
+              ) : (
+                <ResultViewer result={selected} />
+              )
             )}
           </div>
         </section>
@@ -448,6 +564,110 @@ const ResultViewer = ({ result }) => {
         <pre style={{ whiteSpace: "pre-wrap", color: "#e5e7eb", margin: 0 }}>
           {JSON.stringify(result, null, 2)}
         </pre>
+      )}
+    </div>
+  );
+};
+
+// 뉴스 보기 컴포넌트: RAW 결과에서 FAKE_NEWS TITLE/CONTENT 또는 fake_news_title/fake_news_content를 우선 추출
+const NewsViewer = ({ result }) => {
+  // 특정 구조: result.FAKE_NEWS?.TITLE / result.FAKE_NEWS?.CONTENT 우선
+  const parseFakeNews = (obj) => {
+    const fn = obj?.FAKE_NEWS || obj?.fake_news || null;
+    if (!fn || typeof fn !== "object") return null;
+
+    // helper: strip code fences and parse nested JSON
+    const parseNestedJSONString = (text) => {
+      if (typeof text !== "string") return { title: null, content: null };
+      let s = text.trim();
+      // remove leading ```json or ``` and trailing ```
+      s = s.replace(/^```[a-zA-Z]*\n?/, "");
+      s = s.replace(/\n?```$/, "");
+      s = s.trim();
+      try {
+        const j = JSON.parse(s);
+        const t = j?.title || null;
+        const c = j?.content || null;
+        return { title: t, content: c };
+      } catch (e) {
+        return { title: null, content: s || null };
+      }
+    };
+
+    // direct fields including snake_case
+    let title = fn.fake_news_title || fn.TITLE || fn.title || fn.headline || null;
+    let content = fn.fake_news_content || fn.CONTENT || fn.content || fn.body || null;
+
+    // if content is a JSON-like string, parse it to get title/content
+    if (typeof content === "string") {
+      const parsed = parseNestedJSONString(content);
+      // only overwrite if parsed content exists
+      if (parsed.title) title = parsed.title;
+      if (parsed.content) content = parsed.content;
+    }
+
+    // ignore code-fence-only titles like ```json
+    if (typeof title === "string" && /^```/.test(title.trim())) {
+      title = null;
+    }
+
+    if (!title && !content) return null;
+    return { title, content };
+  };
+
+  // 최상위 snake_case 키 지원: fake_news_title / fake_news_content
+  const parseTopLevelSnakeCase = (obj) => {
+    const title = obj?.fake_news_title || obj?.FAKE_NEWS_TITLE || null;
+    const content = obj?.fake_news_content || obj?.FAKE_NEWS_CONTENT || null;
+    if (!title && !content) return null;
+    return { title, content };
+  };
+
+  // 깊은 탐색으로 어디에 있든 찾아낸다
+  const deepFindNews = (node, visited = new Set()) => {
+    if (!node || typeof node !== "object") return null;
+    if (visited.has(node)) return null;
+    visited.add(node);
+
+    // 1) 현재 레벨 검사
+    const direct = parseTopLevelSnakeCase(node) || parseFakeNews(node);
+    if (direct) return direct;
+
+    // 2) 일반 텍스트 후보
+    const keys = ["news", "article", "summary", "generated_news", "prompt", "content"];
+    for (const k of keys) {
+      if (typeof node[k] === "string" && node[k].trim()) return { title: null, content: node[k] };
+    }
+    for (const v of Object.values(node)) {
+      if (Array.isArray(v) && v.every((x) => typeof x === "string")) return { title: null, content: v.join("\n\n") };
+    }
+
+    // 3) 하위로 재귀 탐색
+    for (const v of Object.values(node)) {
+      if (v && typeof v === "object") {
+        const found = deepFindNews(v, visited);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const news = useMemo(() => deepFindNews(result) || null, [result]);
+
+  return (
+    <div style={card}>
+      <div style={{ fontWeight: 700, marginBottom: 12, color: "#a5b4fc" }}>뉴스 보기</div>
+      {news ? (
+        <article style={{ background: "#111827", borderRadius: 8, padding: 16, color: "#e5e7eb" }}>
+          {news.title && (
+            <h2 style={{ marginTop: 0, marginBottom: 12, fontSize: 20, fontWeight: 800 }}>{news.title}</h2>
+          )}
+          {news.content && (
+            <div style={{ whiteSpace: "pre-wrap", lineHeight: 1.8 }}>{news.content}</div>
+          )}
+        </article>
+      ) : (
+        <div style={{ color: "#cbd5e1" }}>표시할 뉴스 본문을 찾지 못했습니다.</div>
       )}
     </div>
   );
