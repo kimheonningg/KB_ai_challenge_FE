@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { fetchQuote, searchSymbol } from "../utils/alphavantage";
+import React, { useState, useEffect } from "react";
+import { fetchQuote } from "../utils/alphavantage";
 import StockInfo from "./StockInfo";
 import { MOCK_SUGGESTIONS } from "../const";
+import { getFavStocks } from "../utils/favstocks";
 
 const StockDashboard = () => {
 	const [symbolInput, setSymbolInput] = useState("");
@@ -9,6 +10,33 @@ const StockDashboard = () => {
 	const [loading, setLoading] = useState(false);
 	const [recent, setRecent] = useState([]);
 	const [suggestions, setSuggestions] = useState([]);
+
+	useEffect(() => {
+		(async () => {
+			try {
+				setLoading(true);
+				const tickers = await getFavStocks();
+				if (!tickers.length) return;
+
+				const need = tickers.filter(
+					(t) => !stocks.some((s) => s["01. symbol"] === t)
+				);
+				const settled = await Promise.allSettled(
+					need.map((t) => fetchQuote(t))
+				);
+				const loaded = settled
+					.filter(
+						(r) => r.status === "fulfilled" && r.value && r.value["01. symbol"]
+					)
+					.map((r) => ({ ...r.value, _favorited: true }));
+
+				if (loaded.length) setStocks((prev) => [...prev, ...loaded]);
+				setRecent((prev) => [...tickers.slice(0, 5), ...prev].slice(0, 5));
+			} finally {
+				setLoading(false);
+			}
+		})();
+	}, []);
 
 	const handleInputChange = (e) => {
 		const input = e.target.value;
@@ -325,6 +353,7 @@ const StockDashboard = () => {
 						alignItems: "center",
 						justifyContent: "center",
 						gap: "0.75rem",
+						marginTop: "1rem",
 					}}
 				>
 					<span
