@@ -8,7 +8,9 @@ import AIAssistantDashboard from "../components/AIAssistantDashboard";
 const styles = {
 	container: {
 		color: "white",
-		paddingTop: "1rem",
+		// paddingTop: "1rem",
+		margin: 0,
+		padding: 0,
 		textAlign: "center",
 		minHeight: "100vh",
 	},

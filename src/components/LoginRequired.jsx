@@ -62,6 +62,7 @@ const LoginRequired = ({ onLogin }) => {
 
 	const ctaStyle = {
 		display: "inline-flex",
+		justifyContent: "center",
 		alignItems: "center",
 		gap: "0.5rem",
 		marginTop: "1.25rem",
@@ -83,7 +84,7 @@ const LoginRequired = ({ onLogin }) => {
 
 	const linkStyle = {
 		display: "inline-block",
-		marginTop: 20,
+		marginTop: 16,
 		color: "#93c5fd",
 		fontSize: "0.9rem",
 		textDecoration: "underline",

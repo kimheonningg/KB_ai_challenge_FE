@@ -7,6 +7,7 @@ import UserProfile from "./pages/UserProfile";
 import Register from "./pages/Register";
 import AddPortfolio from "./pages/AddPortfolio";
 import Reports from "./pages/Reports";
+import "./App.css";
 
 const App = () => (
 	<Router>
