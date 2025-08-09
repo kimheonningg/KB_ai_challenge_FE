@@ -6,8 +6,12 @@ import {
 	fetchAllPortfolios,
 	calculatePortfolioReturns,
 } from "../utils/portfolio";
+import LoginRequired from "./LoginRequired";
 
 const AIAssistantDashboard = () => {
+	const [isLoggedIn, setIsLoggedIn] = useState(() => {
+		return !!localStorage.getItem("authToken");
+	});
 	const [messages, setMessages] = useState("");
 	const [input, setInput] = useState("");
 	const [portfolioData, setPortfolioData] = useState({
@@ -97,7 +101,7 @@ const AIAssistantDashboard = () => {
 
 	const onSimulate = () => alert("주가 변동 시뮬레이션 기능호출");
 
-	return (
+	return isLoggedIn ? (
 		<div
 			style={{
 				background:
@@ -173,6 +177,8 @@ const AIAssistantDashboard = () => {
 				/>
 			</aside>
 		</div>
+	) : (
+		<LoginRequired />
 	);
 };
 

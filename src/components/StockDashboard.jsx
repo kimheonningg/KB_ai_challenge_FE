@@ -5,25 +5,40 @@ import { MOCK_SUGGESTIONS } from "../const";
 import { getFavStocks } from "../utils/favstocks";
 
 const StockDashboard = () => {
+	const [isLoggedIn, setIsLoggedIn] = useState(
+		() => !!localStorage.getItem("authToken")
+	);
 	const [symbolInput, setSymbolInput] = useState("");
 	const [stocks, setStocks] = useState([]);
-	const [loading, setLoading] = useState(false); // general한 로딩
-	const [initLoading, setInitLoading] = useState(false); // 초기 즐겨찾기 로딩
+	const [loading, setLoading] = useState(false);
+	const [initLoading, setInitLoading] = useState(false);
 	const [recent, setRecent] = useState([]);
 	const [suggestions, setSuggestions] = useState([]);
 
 	useEffect(() => {
+		const onStorage = (e) => {
+			if (e.key === "authToken") {
+				setIsLoggedIn(!!localStorage.getItem("authToken"));
+				if (!localStorage.getItem("authToken")) {
+					setStocks([]);
+					setRecent([]);
+				}
+			}
+		};
+		window.addEventListener("storage", onStorage);
+		return () => window.removeEventListener("storage", onStorage);
+	}, []);
+
+	useEffect(() => {
+		if (!isLoggedIn) return;
 		(async () => {
 			try {
 				setInitLoading(true);
 				const tickers = await getFavStocks();
 				if (!tickers.length) return;
 
-				const need = tickers.filter(
-					(t) => !stocks.some((s) => s["01. symbol"] === t)
-				);
 				const settled = await Promise.allSettled(
-					need.map((t) => fetchQuote(t))
+					tickers.map((t) => fetchQuote(t))
 				);
 				const loaded = settled
 					.filter(
@@ -36,7 +51,7 @@ const StockDashboard = () => {
 				setInitLoading(false);
 			}
 		})();
-	}, []);
+	}, [isLoggedIn]);
 
 	const handleInputChange = (e) => {
 		const input = e.target.value;

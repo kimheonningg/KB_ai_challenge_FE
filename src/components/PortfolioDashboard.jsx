@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import PortfolioList from "./PortfolioList";
 import { fetchAllPortfolios } from "../utils/portfolio";
+import LoginRequired from "./LoginRequired";
+import Login from "../pages/Login";
 
 const headerStyle = {
 	display: "flex",
@@ -81,45 +83,21 @@ const PortfolioDashboard = () => {
 	const handlePortfolioDelete = (portfolioId) => {
 		console.log("PortfolioDashboard: Deleting portfolio with ID:", portfolioId);
 		console.log("Current portfolios before deletion:", portfolios);
-		
+
 		// 삭제된 포트폴리오를 목록에서 제거
-		setPortfolios(prevPortfolios => {
-			const updatedPortfolios = prevPortfolios.filter(portfolio => portfolio._id !== portfolioId);
+		setPortfolios((prevPortfolios) => {
+			const updatedPortfolios = prevPortfolios.filter(
+				(portfolio) => portfolio._id !== portfolioId
+			);
 			console.log("Updated portfolios after deletion:", updatedPortfolios);
 			return updatedPortfolios;
 		});
-		
+
 		// 포트폴리오 업데이트 이벤트 발생 (AI Assistant Dashboard 업데이트용)
-		window.dispatchEvent(new Event('portfolioUpdated'));
+		window.dispatchEvent(new Event("portfolioUpdated"));
 	};
 
-	if (!isLoggedIn) {
-		return (
-			<div
-				style={{
-					padding: "1rem 2rem",
-					background:
-						"linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%)",
-					minHeight: "calc(100vh - 80px)",
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "center",
-				}}
-			>
-				<div style={loginMessageStyle}>
-					로그인이 필요한 서비스입니다.
-					<span
-						style={loginLinkStyle}
-						onClick={() => (window.location.href = "/login")}
-					>
-						로그인하러가기
-					</span>
-				</div>
-			</div>
-		);
-	}
-
-	return (
+	return isLoggedIn ? (
 		<div
 			style={{
 				padding: "1rem 2rem",
@@ -141,8 +119,13 @@ const PortfolioDashboard = () => {
 				</button>
 			</div>
 
-			<PortfolioList portfolios={portfolios} onPortfolioDelete={handlePortfolioDelete} />
+			<PortfolioList
+				portfolios={portfolios}
+				onPortfolioDelete={handlePortfolioDelete}
+			/>
 		</div>
+	) : (
+		<LoginRequired />
 	);
 };
 
