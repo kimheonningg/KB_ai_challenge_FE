@@ -5,7 +5,7 @@ const BASE_URL = "https://www.alphavantage.co/query";
 
 // API 호출 제한 관리 - 분당 2회
 let lastCallTime = 0;
-const MIN_CALL_INTERVAL = 30 * 1000; // 30초 (분당 2회 = 30초 간격)
+const MIN_CALL_INTERVAL = 6 * 1000; // 60초 (분당 1회 = 60초 간격)
 
 // 캐시 시스템 - 30초간 유효
 const CACHE_DURATION = 30 * 1000; // 30초
