@@ -7,8 +7,10 @@ import UserProfile from "./pages/UserProfile";
 import Register from "./pages/Register";
 import AddPortfolio from "./pages/AddPortfolio";
 import Reports from "./pages/Reports";
-import "./App.css";
 import StockSimulation from "./pages/StockSimulation";
+import RiskAndRebalance from "./pages/RiskAndRebalance";
+
+import "./App.css";
 
 const App = () => (
 	<Router>
@@ -21,6 +23,7 @@ const App = () => (
 			<Route path="/add_portfolio" element={<AddPortfolio />} />
 			<Route path="/create_report" element={<Reports />} />
 			<Route path="/stock_simulation" element={<StockSimulation />} />
+			<Route path="/risk_and_rebalance" element={<RiskAndRebalance />} />
 		</Routes>
 	</Router>
 );

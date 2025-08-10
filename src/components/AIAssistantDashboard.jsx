@@ -116,7 +116,9 @@ const AIAssistantDashboard = () => {
 	const onReport = () => {
 		window.location.href = "/create_report";
 	};
-	const onRisk = () => alert("위험 신호 감지 기능 호출");
+	const onRisk = () => {
+		window.location.href = "/risk_and_rebalance";
+	};
 
 	const onSimulate = () => {
 		window.location.href = "/stock_simulation";
@@ -199,7 +201,7 @@ const AIAssistantDashboard = () => {
 				<InsightsSection
 					onInsight={onInsight}
 					onReport={onReport}
-					onRisk={onRisk}
+					onRiskRebalance={onRisk}
 					onSimulate={onSimulate}
 				/>
 			</div>
