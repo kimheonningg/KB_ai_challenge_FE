@@ -8,6 +8,21 @@ import {
 } from "../utils/portfolio";
 import LoginRequired from "./LoginRequired";
 
+// 예쁜 로딩 스피너 컴포넌트
+const LoadingSpinner = ({ size = 24, color = "#6678f4" }) => (
+	<div
+		style={{
+			display: "inline-block",
+			width: size,
+			height: size,
+			border: `3px solid rgba(102, 120, 244, 0.2)`,
+			borderRadius: "50%",
+			borderTopColor: color,
+			animation: "spin 1s ease-in-out infinite",
+		}}
+	/>
+);
+
 const AIAssistantDashboard = () => {
 	const [isLoggedIn, setIsLoggedIn] = useState(() => {
 		return !!localStorage.getItem("authToken");
@@ -24,7 +39,7 @@ const AIAssistantDashboard = () => {
 			{ label: "펀드", percent: 0, color: "#d18e48" },
 		],
 	});
-	const [loading, setLoading] = useState(true);
+	const [loading, setLoading] = useState(false);
 
 	// 포트폴리오 데이터 로드
 	const loadPortfolioData = async () => {
@@ -137,22 +152,50 @@ const AIAssistantDashboard = () => {
 					overflowY: "auto",
 				}}
 			>
-				{loading ? (
-					<div
-						style={{
-							display: "flex",
-							justifyContent: "center",
-							alignItems: "center",
-							height: "200px",
-							color: "#e0e7ff",
-							fontSize: "1.1rem",
-						}}
-					>
-						포트폴리오 데이터를 불러오는 중...
-					</div>
-				) : (
+				{/* 포트폴리오 요약 섹션 - 항상 표시되며 로딩 상태를 오버레이로 표시 */}
+				<div style={{ position: "relative" }}>
 					<PortfolioSummarySection data={portfolioData} />
-				)}
+					{loading && (
+						<div
+							style={{
+								position: "absolute",
+								top: 0,
+								left: 0,
+								right: 0,
+								bottom: 0,
+								background: "rgba(15, 23, 42, 0.8)",
+								backdropFilter: "blur(4px)",
+								display: "flex",
+								justifyContent: "center",
+								alignItems: "center",
+								borderRadius: "12px",
+								zIndex: 10,
+							}}
+						>
+							<div
+								style={{
+									display: "flex",
+									flexDirection: "column",
+									alignItems: "center",
+									gap: "16px",
+									color: "#e0e7ff",
+								}}
+							>
+								<LoadingSpinner size={32} color="#6678f4" />
+								<div
+									style={{
+										fontSize: "14px",
+										fontWeight: "500",
+										opacity: 0.9,
+									}}
+								>
+									데이터 업데이트 중...
+								</div>
+							</div>
+						</div>
+					)}
+				</div>
+				
 				<InsightsSection
 					onInsight={onInsight}
 					onReport={onReport}
