@@ -6,36 +6,7 @@ import {
 	deleteReport as apiDeleteReport,
 } from "../utils/report";
 
-const appBackgroundStyle = {
-	minHeight: "100vh",
-	backgroundColor: "#0f172a",
-	color: "#f8fafc",
-	fontFamily: "'Inter', sans-serif",
-	padding: "2rem",
-	boxSizing: "border-box",
-	position: "relative",
-};
-
-const containerStyle = {
-	maxWidth: 960,
-	margin: "0 auto",
-	borderRadius: 16,
-	padding: "2rem 3rem",
-	boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-	backgroundColor: "#0f172a",
-};
-
-const headerWrapperStyle = {
-	display: "flex",
-	justifyContent: "space-between",
-	alignItems: "center",
-	marginBottom: 24,
-};
-
-const headerStyle = {
-	fontWeight: "700",
-	fontSize: "1.8rem",
-};
+import "../styles/aiAssistantPages.css";
 
 const buttonStyle = {
 	padding: "0.5rem 1.2rem",
@@ -196,7 +167,7 @@ const Reports = () => {
 	};
 
 	return (
-		<div style={appBackgroundStyle}>
+		<div className="page">
 			<span
 				className="material-icons"
 				style={{
@@ -215,9 +186,9 @@ const Reports = () => {
 			>
 				arrow_back
 			</span>
-			<div style={containerStyle}>
-				<div style={headerWrapperStyle}>
-					<h1 style={headerStyle}>자동 리포트 생성</h1>
+			<div className="container">
+				<div className="header-wrapper">
+					<h1 className="header-title">자동 리포트 생성</h1>
 					<button
 						style={buttonStyle}
 						onClick={createNewReport}

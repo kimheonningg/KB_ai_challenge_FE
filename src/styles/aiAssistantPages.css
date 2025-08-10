@@ -1,0 +1,30 @@
+.page {
+	min-height: 100vh;
+	background-color: #0f172a;
+	color: #f8fafc;
+	font-family: "Inter", sans-serif;
+	padding: 2rem;
+	box-sizing: border-box;
+	position: relative;
+}
+
+.container {
+	max-width: 960px;
+	margin: 0 auto;
+	border-radius: 16px;
+	padding: 2rem 3rem;
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+	background-color: #0f172a;
+}
+
+.header-wrapper {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 24px;
+}
+
+.header-title {
+	font-weight: 700;
+	font-size: 1.8rem;
+}

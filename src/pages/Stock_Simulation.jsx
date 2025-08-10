@@ -5,48 +5,7 @@ import {
 	deleteSimulation,
 } from "../utils/Stock_Simulation";
 
-const pageStyle = {
-	minHeight: "100vh",
-	backgroundColor: "#0f172a",
-	color: "#f8fafc",
-	fontFamily: "'Inter', sans-serif",
-	padding: "2rem",
-	boxSizing: "border-box",
-	position: "relative",
-};
-
-const containerStyle = {
-	maxWidth: 960,
-	margin: "0 auto",
-	borderRadius: 16,
-	padding: "2rem 3rem",
-	boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
-	backgroundColor: "#0f172a",
-};
-const headerWrapperStyle = {
-	display: "flex",
-	justifyContent: "space-between",
-	alignItems: "center",
-	marginBottom: 24,
-};
-
-const headerTitleStyle = {
-	fontWeight: "700",
-	fontSize: "1.8rem",
-};
-
-// const headerButtonStyle = {
-// 	padding: "0.5rem 1.2rem",
-// 	borderRadius: 8,
-// 	backgroundColor: "#7c3aed",
-// 	color: "#fff",
-// 	border: "none",
-// 	cursor: "pointer",
-// 	fontWeight: "600",
-// 	display: "flex",
-// 	alignItems: "center",
-// 	gap: 6,
-// };
+import "../styles/aiAssistantPages.css";
 
 const button = {
 	padding: "0.6rem 1rem",
@@ -279,7 +238,7 @@ const StockSimulation = () => {
 	};
 
 	return (
-		<div style={pageStyle}>
+		<div className="page">
 			<span
 				className="material-icons"
 				style={{
@@ -295,9 +254,9 @@ const StockSimulation = () => {
 				arrow_back
 			</span>
 
-			<div style={containerStyle}>
-				<div style={headerWrapperStyle}>
-					<h1 style={headerTitleStyle}>주가 변동 시뮬레이션</h1>
+			<div className="container">
+				<div className="header-wrapper">
+					<h1 className="header-title">주가 변동 시뮬레이션</h1>
 					{/* <button
 						style={headerButtonStyle}
 						onClick={onGenerate}
