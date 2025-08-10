@@ -712,10 +712,33 @@ const ResultViewer = ({ result }) => {
 			if (abs >= 1000) return val.toLocaleString();
 			return Number.isInteger(val) ? String(val) : val.toFixed(4);
 		}
-		if (typeof val === "string")
+		if (typeof val === "string") {
+			// impact_reason이나 긴 설명 텍스트는 자동으로 줄바꿈되도록 처리
+			if (val.includes("Impact Reason") || val.includes("impact_reason") || val.length > 200) {
+				return val;
+			}
 			return val.length > 120 ? val.slice(0, 117) + "..." : val;
+		}
 		if (typeof val === "object") return JSON.stringify(val);
 		return String(val);
+	};
+
+	// impact_reason과 같은 긴 텍스트를 위한 특별한 렌더링 함수
+	const renderCellContent = (val, columnName) => {
+		if (typeof val === "string" && (val.includes("Impact Reason") || val.includes("impact_reason") || val.length > 200)) {
+			return (
+				<div style={{
+					maxWidth: "280px", // 셀 패딩을 고려한 최대 너비
+					wordWrap: "break-word",
+					whiteSpace: "pre-wrap",
+					lineHeight: "1.5",
+					fontSize: "13px",
+				}}>
+					{val}
+				</div>
+			);
+		}
+		return formatCell(val);
 	};
 
 	return (
@@ -761,6 +784,8 @@ const ResultViewer = ({ result }) => {
 						<div
 							style={{
 								overflowX: "auto",
+								overflowY: "auto",
+								maxHeight: "60vh", // 세로 스크롤 최대 높이 설정
 								border: "1px solid #1f2a44",
 								borderRadius: 8,
 								minWidth: 0,
@@ -779,7 +804,11 @@ const ResultViewer = ({ result }) => {
 													color: "#93c5fd",
 													borderBottom: "1px solid #1f2a44",
 													whiteSpace: "nowrap",
+													maxWidth: "300px", // 최대 너비 제한
+													overflow: "hidden", // 넘치는 내용 숨김
+													textOverflow: "ellipsis", // 넘치는 텍스트에 ... 표시
 												}}
+												title={c} // 툴팁으로 전체 텍스트 표시
 											>
 												{c}
 											</th>
@@ -797,9 +826,13 @@ const ResultViewer = ({ result }) => {
 														borderBottom: "1px solid #1f2a44",
 														color: "#e5e7eb",
 														verticalAlign: "top",
+														maxWidth: "300px", // 최대 너비 제한
+														wordWrap: "break-word", // 긴 단어 줄바꿈
+														whiteSpace: "pre-wrap", // 공백과 줄바꿈 유지
+														lineHeight: "1.4", // 줄 간격 조정
 													}}
 												>
-													{formatCell(row[c])}
+													{renderCellContent(row[c], c)}
 												</td>
 											))}
 										</tr>
