@@ -8,7 +8,7 @@ import Register from "./pages/Register";
 import AddPortfolio from "./pages/AddPortfolio";
 import Reports from "./pages/Reports";
 import "./App.css";
-import StockSimulation from "./pages/Stock_Simulation";
+import StockSimulation from "./pages/StockSimulation";
 
 const App = () => (
 	<Router>
