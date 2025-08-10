@@ -3,7 +3,7 @@ import {
 	generateAndSimulate,
 	fetchSimulationHistory,
 	deleteSimulation,
-} from "../utils/Stock_Simulation";
+} from "../utils/stockSimulation";
 
 import "../styles/aiAssistantPages.css";
 
