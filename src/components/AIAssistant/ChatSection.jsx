@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { sendChatMessage } from "../../utils/chatbot";
 
+import "../../styles/aiAssistantPageComponents.css";
+
 const ChatMessage = ({ from, text }) => {
 	const isUser = from === "user";
 
@@ -110,24 +112,8 @@ const ChatSection = ({ messages: initialMessages, input, setInput }) => {
 						alignItems: "center",
 					}}
 				>
-					<span
-						className="material-icons"
-						style={{
-							fontSize: "1.3rem",
-							backgroundColor: "#e2e2e2",
-							borderRadius: 4,
-							padding: "5px 10px",
-							fontWeight: "700",
-							color: "#444",
-							display: "inline-flex",
-							alignItems: "center",
-							justifyContent: "center",
-							width: 22,
-							height: 22,
-							lineHeight: 1,
-						}}
-					>
-						smart_toy
+					<span className="material-icon-badge">
+						<span className="material-icons">smart_toy</span>
 					</span>
 					AI 투자 상담
 				</div>

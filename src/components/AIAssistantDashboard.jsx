@@ -94,11 +94,14 @@ const AIAssistantDashboard = () => {
 		// TODO
 	};
 
+	const onInsight = () => {
+		alert("인사이트 기능 호출");
+	};
+
 	const onReport = () => {
 		window.location.href = "/create_report";
 	};
 	const onRisk = () => alert("위험 신호 감지 기능 호출");
-
 
 	const onSimulate = () => {
 		window.location.href = "/stock_simulation";
@@ -151,6 +154,7 @@ const AIAssistantDashboard = () => {
 					<PortfolioSummarySection data={portfolioData} />
 				)}
 				<InsightsSection
+					onInsight={onInsight}
 					onReport={onReport}
 					onRisk={onRisk}
 					onSimulate={onSimulate}
@@ -167,7 +171,7 @@ const AIAssistantDashboard = () => {
 					display: "flex",
 					flexDirection: "column",
 					// minHeight: "calc(100vh - 80px)",
-					height: "610px",
+					height: "710px", // FIXME: hard coded
 					fontFamily: "'Inter', sans-serif",
 					overflowY: "auto",
 				}}
