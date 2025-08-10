@@ -88,6 +88,46 @@ const scrollCard = {
 	maxHeight: "60vh",
 	overflowY: "auto",
 	minWidth: 0,
+	position: "relative",
+};
+
+const trashIconStyle = {
+	cursor: "pointer",
+	fontSize: "1.5rem",
+	color: "#ef4444",
+	userSelect: "none",
+	transition: "color 0.2s ease",
+};
+
+const deleteButtonStyle = {
+	background: "linear-gradient(45deg, #ef4444, #dc2626)",
+	border: "none",
+	borderRadius: "0.5rem",
+	color: "white",
+	padding: "0.3rem 0.7rem",
+	marginRight: "0.1rem",
+	cursor: "pointer",
+	fontWeight: "600",
+	fontSize: "0.9rem",
+};
+
+const deleteGoBackButtonStyle = {
+	backgroundColor: "#4ade80",
+	border: "1px solid #64748b",
+	borderRadius: "0.5rem",
+	color: "#64748b",
+	padding: "0.3rem 0.7rem",
+	cursor: "pointer",
+	fontWeight: "600",
+	fontSize: "0.9rem",
+};
+
+const deleteWrapperStyle = {
+	display: "flex",
+	gap: "0.3rem",
+	alignItems: "center",
+	flexShrink: 0,
+	marginLeft: 12,
 };
 
 const StockSimulation = () => {
@@ -104,6 +144,9 @@ const StockSimulation = () => {
 	const [symbols, setSymbols] = useState(""); // comma-separated
 	const [simulationDays, setSimulationDays] = useState(30);
 	const [confidenceLevel, setConfidenceLevel] = useState(0.95);
+
+	const [deleteMode, setDeleteMode] = useState({});
+	const [deleting, setDeleting] = useState({});
 
 	const formBody = useMemo(() => {
 		const promptBase = `${title ? `[${title}] ` : ""}${content}`.trim();
@@ -140,6 +183,21 @@ const StockSimulation = () => {
 		};
 		load();
 	}, []);
+
+	const toggleDeleteMode = (id) => {
+		setDeleteMode((prev) => ({ ...prev, [id]: !prev[id] }));
+	};
+
+	const cancelDeleteMode = (id) => {
+		setDeleteMode((prev) => ({ ...prev, [id]: false }));
+	};
+
+	const handleDelete = async (id) => {
+		setDeleting((prev) => ({ ...prev, [id]: true }));
+		await onDelete(id);
+		setDeleting((prev) => ({ ...prev, [id]: false }));
+		setDeleteMode((prev) => ({ ...prev, [id]: false }));
+	};
 
 	const onBack = () => {
 		window.location.href = "/?tab=assistant";
@@ -470,13 +528,44 @@ const StockSimulation = () => {
 												</div>
 											)}
 										</div>
-										<div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-											<button
-												style={dangerBtn}
-												onClick={(e) => onDelete(item.simulation_id, e)}
-											>
-												삭제
-											</button>
+										<div style={deleteWrapperStyle}>
+											{!deleteMode[item.simulation_id] ? (
+												<span
+													className="material-icons"
+													style={trashIconStyle}
+													onClick={(e) => {
+														e.stopPropagation();
+														toggleDeleteMode(item.simulation_id);
+													}}
+													title="삭제"
+												>
+													delete
+												</span>
+											) : (
+												<>
+													<button
+														style={deleteButtonStyle}
+														onClick={(e) => {
+															e.stopPropagation();
+															handleDelete(item.simulation_id);
+														}}
+														disabled={deleting[item.simulation_id]}
+													>
+														{deleting[item.simulation_id]
+															? "삭제 중..."
+															: "삭제하기"}
+													</button>
+													<button
+														style={deleteGoBackButtonStyle}
+														onClick={(e) => {
+															e.stopPropagation();
+															cancelDeleteMode(item.simulation_id);
+														}}
+													>
+														돌아가기
+													</button>
+												</>
+											)}
 										</div>
 									</div>
 								))}
