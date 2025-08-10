@@ -14,7 +14,6 @@ const button = {
 	fontWeight: 700,
 	cursor: "pointer",
 };
-
 const primaryBtn = { ...button, backgroundColor: "#7c3aed", color: "#fff" };
 const dangerBtn = { ...button, backgroundColor: "#ef4444", color: "#fff" };
 const ghostBtn = {
@@ -55,6 +54,7 @@ const listItem = {
 	alignItems: "center",
 	marginBottom: 12,
 	cursor: "pointer",
+	minWidth: 0,
 };
 
 const spinner = {
@@ -64,6 +64,70 @@ const spinner = {
 	borderTopColor: "transparent",
 	borderRadius: "50%",
 	animation: "spin 1s linear infinite",
+};
+
+const pageStyle = {
+	height: "100vh",
+	overflow: "auto",
+	padding: 24,
+	position: "relative",
+};
+const containerStyle = {
+	maxWidth: 1200,
+	margin: "0 auto",
+	width: "100%",
+};
+const rightCol = {
+	minWidth: 0,
+	display: "grid",
+	gap: 16,
+	alignContent: "start",
+};
+const scrollCard = {
+	...card,
+	maxHeight: "60vh",
+	overflowY: "auto",
+	minWidth: 0,
+	position: "relative",
+};
+
+const trashIconStyle = {
+	cursor: "pointer",
+	fontSize: "1.5rem",
+	color: "#ef4444",
+	userSelect: "none",
+	transition: "color 0.2s ease",
+};
+
+const deleteButtonStyle = {
+	background: "linear-gradient(45deg, #ef4444, #dc2626)",
+	border: "none",
+	borderRadius: "0.5rem",
+	color: "white",
+	padding: "0.3rem 0.7rem",
+	marginRight: "0.1rem",
+	cursor: "pointer",
+	fontWeight: "600",
+	fontSize: "0.9rem",
+};
+
+const deleteGoBackButtonStyle = {
+	backgroundColor: "#4ade80",
+	border: "1px solid #64748b",
+	borderRadius: "0.5rem",
+	color: "#64748b",
+	padding: "0.3rem 0.7rem",
+	cursor: "pointer",
+	fontWeight: "600",
+	fontSize: "0.9rem",
+};
+
+const deleteWrapperStyle = {
+	display: "flex",
+	gap: "0.3rem",
+	alignItems: "center",
+	flexShrink: 0,
+	marginLeft: 12,
 };
 
 const StockSimulation = () => {
@@ -80,6 +144,9 @@ const StockSimulation = () => {
 	const [symbols, setSymbols] = useState(""); // comma-separated
 	const [simulationDays, setSimulationDays] = useState(30);
 	const [confidenceLevel, setConfidenceLevel] = useState(0.95);
+
+	const [deleteMode, setDeleteMode] = useState({});
+	const [deleting, setDeleting] = useState({});
 
 	const formBody = useMemo(() => {
 		const promptBase = `${title ? `[${title}] ` : ""}${content}`.trim();
@@ -106,7 +173,6 @@ const StockSimulation = () => {
 					return storedTitle ? { ...s, _input_title: storedTitle } : s;
 				});
 				setHistory(sims);
-				// 최초 로드 시 자동 표시하지 않음
 				setSelected(null);
 				setViewMode(null);
 			} catch (e) {
@@ -118,29 +184,35 @@ const StockSimulation = () => {
 		load();
 	}, []);
 
+	const toggleDeleteMode = (id) => {
+		setDeleteMode((prev) => ({ ...prev, [id]: !prev[id] }));
+	};
+
+	const cancelDeleteMode = (id) => {
+		setDeleteMode((prev) => ({ ...prev, [id]: false }));
+	};
+
+	const handleDelete = async (id) => {
+		setDeleting((prev) => ({ ...prev, [id]: true }));
+		await onDelete(id);
+		setDeleting((prev) => ({ ...prev, [id]: false }));
+		setDeleteMode((prev) => ({ ...prev, [id]: false }));
+	};
+
 	const onBack = () => {
 		window.location.href = "/?tab=assistant";
 	};
 
 	const onGenerate = async () => {
-		// 기본 유효성 검사: 필수 입력값 확인
 		const symbolsArr = formBody.symbols || [];
-		if (!formBody.prompt?.trim()) {
-			setError("프롬프트(제목+내용)를 입력하세요.");
-			return;
-		}
-		if (!symbolsArr.length) {
-			setError("최소 1개 이상의 심볼을 입력하세요.");
-			return;
-		}
-		if (!Number.isFinite(simulationDays) || simulationDays < 1) {
-			setError("시뮬레이션 일수는 1 이상의 숫자여야 합니다.");
-			return;
-		}
-		if (!(confidenceLevel > 0 && confidenceLevel < 1)) {
-			setError("신뢰수준은 0과 1 사이의 소수여야 합니다. (예: 0.95)");
-			return;
-		}
+		if (!formBody.prompt?.trim())
+			return setError("프롬프트(제목+내용)를 입력하세요.");
+		if (!symbolsArr.length)
+			return setError("최소 1개 이상의 심볼을 입력하세요.");
+		if (!Number.isFinite(simulationDays) || simulationDays < 1)
+			return setError("시뮬레이션 일수는 1 이상의 숫자여야 합니다.");
+		if (!(confidenceLevel > 0 && confidenceLevel < 1))
+			return setError("신뢰수준은 0과 1 사이의 소수여야 합니다. (예: 0.95)");
 
 		setLoading(true);
 		setError(null);
@@ -150,7 +222,6 @@ const StockSimulation = () => {
 				simulation_days: simulationDays,
 				confidence_level: confidenceLevel,
 			});
-			// append to history and select
 			const withTitle = { ...res, _input_title: title };
 			try {
 				if (withTitle?.simulation_id && typeof window !== "undefined") {
@@ -162,10 +233,9 @@ const StockSimulation = () => {
 			} catch {}
 			setHistory((prev) => [...prev, withTitle]);
 			setSelected(withTitle);
-			setViewMode(null); // 자동 표시하지 않음
-			setOpenOptionsId(res.simulation_id); // 방금 생성한 항목 옵션 열기
+			setViewMode(null);
+			setOpenOptionsId(res.simulation_id);
 		} catch (e) {
-			// 서버의 422 등 상세 오류 메시지 노출
 			const detail = e?.response?.data || e?.message || "시뮬레이션 생성 실패";
 			const msg = typeof detail === "string" ? detail : JSON.stringify(detail);
 			setError(msg);
@@ -195,7 +265,6 @@ const StockSimulation = () => {
 		}
 	};
 
-	// 히스토리 타이틀 추출: 입력 제목 우선, 없으면 fake_news에서 유추
 	const getHistoryTitle = (item) => {
 		try {
 			if (item?._input_title && String(item._input_title).trim())
@@ -219,15 +288,15 @@ const StockSimulation = () => {
 			if (typeof content !== "string") return null;
 
 			let s = content.trim();
-			s = s.replace(/^```[a-zA-Z]*\n?/, "");
-			s = s.replace(/\n?```$/, "");
-			s = s.trim();
+			s = s
+				.replace(/^```[a-zA-Z]*\n?/, "")
+				.replace(/\n?```$/, "")
+				.trim();
 			try {
 				const j = JSON.parse(s);
 				const t = j?.title;
 				if (t && typeof t === "string") return t;
-			} catch (e) {
-				// not JSON; fallback: 첫 줄을 제목으로 사용
+			} catch {
 				const firstLine = s.split(/\r?\n/)[0];
 				if (firstLine) return firstLine.slice(0, 140);
 			}
@@ -238,7 +307,7 @@ const StockSimulation = () => {
 	};
 
 	return (
-		<div className="page">
+		<div className="page" style={pageStyle}>
 			<span
 				className="material-icons"
 				style={{
@@ -254,24 +323,9 @@ const StockSimulation = () => {
 				arrow_back
 			</span>
 
-			<div className="container">
+			<div className="container" style={containerStyle}>
 				<div className="header-wrapper">
 					<h1 className="header-title">주가 변동 시뮬레이션</h1>
-					{/* <button
-						style={headerButtonStyle}
-						onClick={onGenerate}
-						disabled={loading}
-					>
-						{loading ? (
-							<span
-								style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-							>
-								<span style={spinner} /> 생성 중...
-							</span>
-						) : (
-							"시뮬레이션 생성"
-						)}
-					</button> */}
 				</div>
 
 				{error && (
@@ -283,11 +337,13 @@ const StockSimulation = () => {
 				<section
 					style={{
 						display: "grid",
-						gridTemplateColumns: "1fr 1fr",
+						gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
 						gap: 16,
 						marginBottom: 24,
+						alignItems: "start",
 					}}
 				>
+					{/* 좌측: 입력 폼 */}
 					<div style={card}>
 						<div
 							style={{ fontWeight: 700, marginBottom: 12, color: "#a5b4fc" }}
@@ -365,8 +421,9 @@ const StockSimulation = () => {
 						</div>
 					</div>
 
-					<div>
-						<div style={{ ...card, marginBottom: 16 }}>
+					{/* 우측: 히스토리 + 뷰 */}
+					<div style={rightCol}>
+						<div style={{ ...scrollCard, marginBottom: 0 }}>
 							<div
 								style={{ fontWeight: 700, marginBottom: 12, color: "#a5b4fc" }}
 							>
@@ -386,7 +443,13 @@ const StockSimulation = () => {
 									<span>시뮬레이션 생성 중...</span>
 								</div>
 							)}
-							<div>
+							<div
+								style={{
+									maxHeight: "40vh",
+									overflowY: "auto",
+									minWidth: 0,
+								}}
+							>
 								{history.length === 0 && (
 									<div style={{ color: "#cbd5e1" }}>기록이 없습니다.</div>
 								)}
@@ -395,10 +458,10 @@ const StockSimulation = () => {
 										key={item.simulation_id}
 										style={listItem}
 										onClick={() => {
-											setSelected(item); /* 보기 모드는 옵션에서 선택 */
+											setSelected(item);
 										}}
 									>
-										<div>
+										<div style={{ minWidth: 0 }}>
 											<div style={{ fontWeight: 700 }}>
 												ID:{" "}
 												<span
@@ -420,8 +483,8 @@ const StockSimulation = () => {
 												</span>
 											</div>
 											{(() => {
-												const title = getHistoryTitle(item);
-												return title ? (
+												const t = getHistoryTitle(item);
+												return t ? (
 													<div
 														style={{
 															color: "#e2e8f0",
@@ -433,7 +496,7 @@ const StockSimulation = () => {
 															maxWidth: 520,
 														}}
 													>
-														{title}
+														{t}
 													</div>
 												) : null;
 											})()}
@@ -448,7 +511,6 @@ const StockSimulation = () => {
 															e.stopPropagation();
 															setSelected(item);
 															setViewMode("news");
-															setOpenOptionsId(null);
 														}}
 													>
 														뉴스 보기
@@ -459,7 +521,6 @@ const StockSimulation = () => {
 															e.stopPropagation();
 															setSelected(item);
 															setViewMode("result");
-															setOpenOptionsId(null);
 														}}
 													>
 														시뮬레이션 결과 보기
@@ -467,13 +528,44 @@ const StockSimulation = () => {
 												</div>
 											)}
 										</div>
-										<div style={{ display: "flex", gap: 8 }}>
-											<button
-												style={dangerBtn}
-												onClick={(e) => onDelete(item.simulation_id, e)}
-											>
-												삭제
-											</button>
+										<div style={deleteWrapperStyle}>
+											{!deleteMode[item.simulation_id] ? (
+												<span
+													className="material-icons"
+													style={trashIconStyle}
+													onClick={(e) => {
+														e.stopPropagation();
+														toggleDeleteMode(item.simulation_id);
+													}}
+													title="삭제"
+												>
+													delete
+												</span>
+											) : (
+												<>
+													<button
+														style={deleteButtonStyle}
+														onClick={(e) => {
+															e.stopPropagation();
+															handleDelete(item.simulation_id);
+														}}
+														disabled={deleting[item.simulation_id]}
+													>
+														{deleting[item.simulation_id]
+															? "삭제 중..."
+															: "삭제하기"}
+													</button>
+													<button
+														style={deleteGoBackButtonStyle}
+														onClick={(e) => {
+															e.stopPropagation();
+															cancelDeleteMode(item.simulation_id);
+														}}
+													>
+														돌아가기
+													</button>
+												</>
+											)}
 										</div>
 									</div>
 								))}
@@ -488,7 +580,7 @@ const StockSimulation = () => {
 							(loading ? (
 								<div
 									style={{
-										...card,
+										...scrollCard,
 										display: "flex",
 										alignItems: "center",
 										gap: 12,
@@ -504,20 +596,40 @@ const StockSimulation = () => {
 				</section>
 			</div>
 
-			<style>
-				{`
-          @keyframes spin {
-            0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);}
-          }
-        `}
-			</style>
+			<style>{`
+				@keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
+
+				/* ==== 스크롤바 커스텀 ==== */
+				/* Webkit 기반 (Chrome, Edge, Safari) */
+				::-webkit-scrollbar {
+					height: 8px;
+					width: 8px;
+				}
+				::-webkit-scrollbar-track {
+					background: rgba(255, 255, 255, 0.08);
+					border-radius: 4px;
+				}
+				::-webkit-scrollbar-thumb {
+					background: rgba(156, 163, 175, 0.7); /* 밝은 회색 */
+					border-radius: 4px;
+				}
+				::-webkit-scrollbar-thumb:hover {
+					background: rgba(229, 231, 235, 0.9); /* hover 시 더 밝게 */
+				}
+
+				/* Firefox */
+				* {
+					scrollbar-width: thin;
+					scrollbar-color: rgba(156, 163, 175, 0.7) rgba(255, 255, 255, 0.08);
+				}
+				`}</style>
 		</div>
 	);
 };
 
 export default StockSimulation;
 
-// 결과 보기 컴포넌트: 요약 + 표 + RAW 토글
+/* ---------- Result Viewer ---------- */
 const ResultViewer = ({ result }) => {
 	const [showRaw, setShowRaw] = useState(false);
 
@@ -539,10 +651,9 @@ const ResultViewer = ({ result }) => {
 		],
 	].filter(([, v]) => v !== undefined && v !== null && v !== "");
 
-	// 가능한 배열 결과 탐색
 	const pickArray = (obj) => {
 		if (!obj || typeof obj !== "object") return null;
-		const priorityKeys = [
+		const priority = [
 			"results",
 			"simulations",
 			"stocks",
@@ -552,19 +663,16 @@ const ResultViewer = ({ result }) => {
 			"symbol_results",
 			"details",
 		];
-		for (const k of priorityKeys) {
+		for (const k of priority) {
 			if (
 				Array.isArray(obj[k]) &&
 				obj[k].every((e) => e && typeof e === "object")
-			) {
+			)
 				return obj[k];
-			}
 		}
-		// fallback: 첫 번째로 발견되는 객체 배열
 		for (const v of Object.values(obj)) {
-			if (Array.isArray(v) && v.every((e) => e && typeof e === "object")) {
+			if (Array.isArray(v) && v.every((e) => e && typeof e === "object"))
 				return v;
-			}
 		}
 		return null;
 	};
@@ -573,13 +681,11 @@ const ResultViewer = ({ result }) => {
 
 	const columns = useMemo(() => {
 		if (!dataArray || dataArray.length === 0) return [];
-		// keys union (상위 20개 제한)
 		const keySet = new Set();
 		for (const row of dataArray.slice(0, 50)) {
 			Object.keys(row).forEach((k) => keySet.add(k));
 			if (keySet.size > 20) break;
 		}
-		// 심볼/핵심 컬럼을 앞으로 정렬
 		const preferred = [
 			"symbol",
 			"ticker",
@@ -613,7 +719,7 @@ const ResultViewer = ({ result }) => {
 	};
 
 	return (
-		<div style={card}>
+		<div style={scrollCard}>
 			<div
 				style={{
 					display: "flex",
@@ -637,20 +743,16 @@ const ResultViewer = ({ result }) => {
 								display: "grid",
 								gridTemplateColumns: "160px 1fr",
 								gap: 8,
+								minWidth: 0,
 							}}
 						>
-							{metaRows.map(([k, v]) => (
-								<>
-									<div
-										key={k + "_k"}
-										style={{ color: "#93c5fd", fontWeight: 700 }}
-									>
-										{k}
-									</div>
-									<div key={k + "_v"} style={{ color: "#e5e7eb" }}>
+							{metaRows.map(([k, v], i) => (
+								<React.Fragment key={k + "_" + i}>
+									<div style={{ color: "#93c5fd", fontWeight: 700 }}>{k}</div>
+									<div style={{ color: "#e5e7eb", minWidth: 0 }}>
 										{String(v)}
 									</div>
-								</>
+								</React.Fragment>
 							))}
 						</div>
 					)}
@@ -661,6 +763,7 @@ const ResultViewer = ({ result }) => {
 								overflowX: "auto",
 								border: "1px solid #1f2a44",
 								borderRadius: 8,
+								minWidth: 0,
 							}}
 						>
 							<table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -675,6 +778,7 @@ const ResultViewer = ({ result }) => {
 													background: "#0b1222",
 													color: "#93c5fd",
 													borderBottom: "1px solid #1f2a44",
+													whiteSpace: "nowrap",
 												}}
 											>
 												{c}
@@ -692,6 +796,7 @@ const ResultViewer = ({ result }) => {
 														padding: "10px 12px",
 														borderBottom: "1px solid #1f2a44",
 														color: "#e5e7eb",
+														verticalAlign: "top",
 													}}
 												>
 													{formatCell(row[c])}
@@ -719,55 +824,43 @@ const ResultViewer = ({ result }) => {
 	);
 };
 
-// 뉴스 보기 컴포넌트: RAW 결과에서 FAKE_NEWS TITLE/CONTENT 또는 fake_news_title/fake_news_content를 우선 추출
+/* ---------- News Viewer ---------- */
 const NewsViewer = ({ result }) => {
-	// 특정 구조: result.FAKE_NEWS?.TITLE / result.FAKE_NEWS?.CONTENT 우선
 	const parseFakeNews = (obj) => {
 		const fn = obj?.FAKE_NEWS || obj?.fake_news || null;
 		if (!fn || typeof fn !== "object") return null;
 
-		// helper: strip code fences and parse nested JSON
 		const parseNestedJSONString = (text) => {
 			if (typeof text !== "string") return { title: null, content: null };
 			let s = text.trim();
-			// remove leading ```json or ``` and trailing ```
-			s = s.replace(/^```[a-zA-Z]*\n?/, "");
-			s = s.replace(/\n?```$/, "");
-			s = s.trim();
+			s = s
+				.replace(/^```[a-zA-Z]*\n?/, "")
+				.replace(/\n?```$/, "")
+				.trim();
 			try {
 				const j = JSON.parse(s);
-				const t = j?.title || null;
-				const c = j?.content || null;
-				return { title: t, content: c };
-			} catch (e) {
+				return { title: j?.title || null, content: j?.content || null };
+			} catch {
 				return { title: null, content: s || null };
 			}
 		};
 
-		// direct fields including snake_case
 		let title =
 			fn.fake_news_title || fn.TITLE || fn.title || fn.headline || null;
 		let content =
 			fn.fake_news_content || fn.CONTENT || fn.content || fn.body || null;
 
-		// if content is a JSON-like string, parse it to get title/content
 		if (typeof content === "string") {
 			const parsed = parseNestedJSONString(content);
-			// only overwrite if parsed content exists
 			if (parsed.title) title = parsed.title;
 			if (parsed.content) content = parsed.content;
 		}
-
-		// ignore code-fence-only titles like ```json
-		if (typeof title === "string" && /^```/.test(title.trim())) {
-			title = null;
-		}
+		if (typeof title === "string" && /^```/.test(title.trim())) title = null;
 
 		if (!title && !content) return null;
 		return { title, content };
 	};
 
-	// 최상위 snake_case 키 지원: fake_news_title / fake_news_content
 	const parseTopLevelSnakeCase = (obj) => {
 		const title = obj?.fake_news_title || obj?.FAKE_NEWS_TITLE || null;
 		const content = obj?.fake_news_content || obj?.FAKE_NEWS_CONTENT || null;
@@ -775,17 +868,14 @@ const NewsViewer = ({ result }) => {
 		return { title, content };
 	};
 
-	// 깊은 탐색으로 어디에 있든 찾아낸다
 	const deepFindNews = (node, visited = new Set()) => {
 		if (!node || typeof node !== "object") return null;
 		if (visited.has(node)) return null;
 		visited.add(node);
 
-		// 1) 현재 레벨 검사
 		const direct = parseTopLevelSnakeCase(node) || parseFakeNews(node);
 		if (direct) return direct;
 
-		// 2) 일반 텍스트 후보
 		const keys = [
 			"news",
 			"article",
@@ -802,8 +892,6 @@ const NewsViewer = ({ result }) => {
 			if (Array.isArray(v) && v.every((x) => typeof x === "string"))
 				return { title: null, content: v.join("\n\n") };
 		}
-
-		// 3) 하위로 재귀 탐색
 		for (const v of Object.values(node)) {
 			if (v && typeof v === "object") {
 				const found = deepFindNews(v, visited);
@@ -816,7 +904,7 @@ const NewsViewer = ({ result }) => {
 	const news = useMemo(() => deepFindNews(result) || null, [result]);
 
 	return (
-		<div style={card}>
+		<div style={scrollCard}>
 			<div style={{ fontWeight: 700, marginBottom: 12, color: "#a5b4fc" }}>
 				뉴스 보기
 			</div>
