@@ -2,19 +2,6 @@ import React from "react";
 
 import "../../styles/aiAssistantPageComponents.css";
 
-const containerStyle = {
-	background: "white",
-	borderRadius: 20,
-	padding: 24,
-	color: "#222",
-	fontFamily: "'Inter', sans-serif",
-	boxShadow: "0 6px 20px rgb(16 16 39 / 0.15)",
-	display: "flex",
-	flexDirection: "column",
-	gap: 24,
-	boxSizing: "border-box",
-};
-
 const headerStyle = {
 	fontWeight: 700,
 	fontSize: 18,
@@ -22,7 +9,7 @@ const headerStyle = {
 	alignItems: "center",
 	gap: 10,
 	marginBottom: 8,
-	color: "#222",
+	color: "#333",
 };
 
 const iconInner = {
@@ -84,7 +71,7 @@ const InsightsSection = ({
 	onSimulate,
 }) => {
 	return (
-		<section style={containerStyle}>
+		<section className="left-side-container">
 			<h3 style={headerStyle}>
 				<span className="material-icon-badge">
 					<span className="material-icons" style={iconInner}>

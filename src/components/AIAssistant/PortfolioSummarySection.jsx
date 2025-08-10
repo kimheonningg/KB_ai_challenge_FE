@@ -1,5 +1,7 @@
 import React from "react";
 
+import "../../styles/aiAssistantPageComponents.css";
+
 const PortfolioSummary = ({ totalAsset, dailyReturn, yearlyReturn }) => (
 	<div
 		style={{
@@ -132,16 +134,7 @@ const PortfolioAllocation = ({ allocation }) => (
 );
 
 const PortfolioSummarySection = ({ data }) => (
-	<section
-		style={{
-			background: "#fff",
-			borderRadius: 16,
-			padding: 24,
-			boxSizing: "border-box",
-			color: "#222",
-			boxShadow: "0 6px 20px rgb(16 16 39 / 0.15)",
-		}}
-	>
+	<section className="left-side-container">
 		<h2
 			style={{
 				fontWeight: "700",

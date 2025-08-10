@@ -171,7 +171,7 @@ const AIAssistantDashboard = () => {
 					display: "flex",
 					flexDirection: "column",
 					// minHeight: "calc(100vh - 80px)",
-					height: "710px", // FIXME: hard coded
+					height: "765px", // FIXME: hard coded
 					fontFamily: "'Inter', sans-serif",
 					overflowY: "auto",
 				}}
