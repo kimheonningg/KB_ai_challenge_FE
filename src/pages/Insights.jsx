@@ -248,7 +248,7 @@ const Insights = () => {
 	}, [tm, base, cmp]);
 
 	const currency = (v) =>
-		(v == null ? "-" : Math.round(v).toLocaleString("ko-KR")) + "원";
+		v == null ? "-" : Math.round(v).toLocaleString("ko-KR");
 	const pct = (v) => (v == null ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(2)}%`);
 
 	// Insights 제목 생성: briefing_date + 모든 event_name
@@ -438,12 +438,173 @@ const Insights = () => {
 									>
 										가장 크게 오른 주식
 									</div>
-									<div style={{ color: "#94a3b8" }}>
-										{data.top_gainer
-											? JSON.stringify(data.top_gainer)
-											: "데이터 없음"}
-									</div>
+
+									{!data?.top_gainer ? (
+										<div style={{ color: "#94a3b8" }}>데이터 없음</div>
+									) : (
+										(() => {
+											const g = data.top_gainer;
+											const cp = Number(g.change_percent ?? 0);
+											const isUp = cp >= 0;
+											return (
+												<div style={{ display: "grid", gap: 10 }}>
+													{/* 헤더 */}
+													<div
+														style={{
+															display: "flex",
+															justifyContent: "space-between",
+															alignItems: "center",
+															gap: 10,
+														}}
+													>
+														<div
+															style={{
+																color: "#e5e7eb",
+																fontWeight: 800,
+																fontSize: 16,
+															}}
+														>
+															{g.ticker}
+															{g.company_name ? ` · ${g.company_name}` : ""}
+														</div>
+														<Chip tone={isUp ? "green" : "red"}>
+															<span
+																className="material-icons"
+																style={{
+																	fontSize: 14,
+																	verticalAlign: "-2px",
+																	marginRight: 4,
+																}}
+															>
+																{isUp ? "trending_up" : "trending_down"}
+															</span>
+															{pct(cp)}
+														</Chip>
+													</div>
+
+													{/* 이유 */}
+													{g.analysis_reason && (
+														<div
+															style={{
+																border: "1px solid #334155",
+																borderRadius: 8,
+																padding: 10,
+																background: "#0b1222",
+															}}
+														>
+															<div
+																style={{
+																	color: "#e5e7eb",
+																	fontWeight: 700,
+																	marginBottom: 4,
+																}}
+															>
+																왜 이렇게 움직였나요?
+															</div>
+															<div
+																style={{ color: "#cbd5e1", lineHeight: 1.6 }}
+															>
+																{g.analysis_reason}
+															</div>
+														</div>
+													)}
+
+													{/* 재무 체력 */}
+													{g.financial_health_analysis && (
+														<div
+															style={{
+																border: "1px solid #334155",
+																borderRadius: 8,
+																padding: 10,
+																background: "#0b1222",
+															}}
+														>
+															<div
+																style={{
+																	color: "#e5e7eb",
+																	fontWeight: 700,
+																	marginBottom: 4,
+																}}
+															>
+																재무 체력 진단
+															</div>
+															<div
+																style={{ color: "#cbd5e1", lineHeight: 1.6 }}
+															>
+																{g.financial_health_analysis}
+															</div>
+														</div>
+													)}
+
+													{/* 핵심 개념 */}
+													{(g.key_concept_term ||
+														g.key_concept_description) && (
+														<div
+															style={{
+																border: "1px solid #334155",
+																borderRadius: 8,
+																padding: 10,
+																background: "#0b1222",
+															}}
+														>
+															<div
+																style={{
+																	color: "#e5e7eb",
+																	fontWeight: 700,
+																	marginBottom: 4,
+																}}
+															>
+																핵심 개념
+															</div>
+															<div
+																style={{ color: "#cbd5e1", lineHeight: 1.6 }}
+															>
+																{g.key_concept_term && (
+																	<b style={{ color: "#bfdbfe" }}>
+																		{g.key_concept_term}
+																	</b>
+																)}
+																{g.key_concept_description && (
+																	<span style={{ marginLeft: 6 }}>
+																		{g.key_concept_description}
+																	</span>
+																)}
+															</div>
+														</div>
+													)}
+
+													{/* 포트폴리오 팁 */}
+													{g.portfolio_tip && (
+														<div
+															style={{
+																border: "1px solid #334155",
+																borderRadius: 8,
+																padding: 10,
+																background: "#0b1222",
+															}}
+														>
+															<div
+																style={{
+																	color: "#e5e7eb",
+																	fontWeight: 700,
+																	marginBottom: 4,
+																}}
+															>
+																포트폴리오 팁
+															</div>
+															<div
+																style={{ color: "#cbd5e1", lineHeight: 1.6 }}
+															>
+																{g.portfolio_tip}
+															</div>
+														</div>
+													)}
+												</div>
+											);
+										})()
+									)}
 								</Box>
+
 								<Box>
 									<div
 										style={{
@@ -454,11 +615,171 @@ const Insights = () => {
 									>
 										가장 크게 내린 주식
 									</div>
-									<div style={{ color: "#94a3b8" }}>
-										{data.top_loser
-											? JSON.stringify(data.top_loser)
-											: "데이터 없음"}
-									</div>
+
+									{!data?.top_loser ? (
+										<div style={{ color: "#94a3b8" }}>데이터 없음</div>
+									) : (
+										(() => {
+											const g = data.top_loser;
+											const cp = Number(g.change_percent ?? 0);
+											const isUp = cp >= 0;
+											return (
+												<div style={{ display: "grid", gap: 10 }}>
+													{/* 헤더 */}
+													<div
+														style={{
+															display: "flex",
+															justifyContent: "space-between",
+															alignItems: "center",
+															gap: 10,
+														}}
+													>
+														<div
+															style={{
+																color: "#e5e7eb",
+																fontWeight: 800,
+																fontSize: 16,
+															}}
+														>
+															{g.ticker}
+															{g.company_name ? ` · ${g.company_name}` : ""}
+														</div>
+														<Chip tone={isUp ? "green" : "red"}>
+															<span
+																className="material-icons"
+																style={{
+																	fontSize: 14,
+																	verticalAlign: "-2px",
+																	marginRight: 4,
+																}}
+															>
+																{isUp ? "trending_up" : "trending_down"}
+															</span>
+															{pct(cp)}
+														</Chip>
+													</div>
+
+													{/* 이유 */}
+													{g.analysis_reason && (
+														<div
+															style={{
+																border: "1px solid #334155",
+																borderRadius: 8,
+																padding: 10,
+																background: "#0b1222",
+															}}
+														>
+															<div
+																style={{
+																	color: "#e5e7eb",
+																	fontWeight: 700,
+																	marginBottom: 4,
+																}}
+															>
+																왜 이렇게 움직였나요?
+															</div>
+															<div
+																style={{ color: "#cbd5e1", lineHeight: 1.6 }}
+															>
+																{g.analysis_reason}
+															</div>
+														</div>
+													)}
+
+													{/* 재무 체력 */}
+													{g.financial_health_analysis && (
+														<div
+															style={{
+																border: "1px solid #334155",
+																borderRadius: 8,
+																padding: 10,
+																background: "#0b1222",
+															}}
+														>
+															<div
+																style={{
+																	color: "#e5e7eb",
+																	fontWeight: 700,
+																	marginBottom: 4,
+																}}
+															>
+																재무 체력 진단
+															</div>
+															<div
+																style={{ color: "#cbd5e1", lineHeight: 1.6 }}
+															>
+																{g.financial_health_analysis}
+															</div>
+														</div>
+													)}
+
+													{/* 핵심 개념 */}
+													{(g.key_concept_term ||
+														g.key_concept_description) && (
+														<div
+															style={{
+																border: "1px solid #334155",
+																borderRadius: 8,
+																padding: 10,
+																background: "#0b1222",
+															}}
+														>
+															<div
+																style={{
+																	color: "#e5e7eb",
+																	fontWeight: 700,
+																	marginBottom: 4,
+																}}
+															>
+																핵심 개념
+															</div>
+															<div
+																style={{ color: "#cbd5e1", lineHeight: 1.6 }}
+															>
+																{g.key_concept_term && (
+																	<b style={{ color: "#bfdbfe" }}>
+																		{g.key_concept_term}
+																	</b>
+																)}
+																{g.key_concept_description && (
+																	<span style={{ marginLeft: 6 }}>
+																		{g.key_concept_description}
+																	</span>
+																)}
+															</div>
+														</div>
+													)}
+
+													{/* 포트폴리오 팁 */}
+													{g.portfolio_tip && (
+														<div
+															style={{
+																border: "1px solid #334155",
+																borderRadius: 8,
+																padding: 10,
+																background: "#0b1222",
+															}}
+														>
+															<div
+																style={{
+																	color: "#e5e7eb",
+																	fontWeight: 700,
+																	marginBottom: 4,
+																}}
+															>
+																포트폴리오 팁
+															</div>
+															<div
+																style={{ color: "#cbd5e1", lineHeight: 1.6 }}
+															>
+																{g.portfolio_tip}
+															</div>
+														</div>
+													)}
+												</div>
+											);
+										})()
+									)}
 								</Box>
 							</div>
 						</div>
@@ -814,7 +1135,7 @@ const Insights = () => {
 									value={amount}
 									onChange={(e) => setAmount(e.target.value)}
 									min={1}
-									placeholder="주식 수량 (KRW)"
+									placeholder="총 금액"
 								/>
 								<input
 									style={inputStyle}
