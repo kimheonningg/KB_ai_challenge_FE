@@ -160,15 +160,29 @@ const Register = () => {
 					)}
 
 					{success && (
-						<p
+						<div
 							style={{
-								color: "#34d399",
+								display: "flex",
+								flexDirection: "column",
 								marginTop: "1rem",
 								textAlign: "center",
+								color: "#34d399",
+								fontSize: "1rem",
 							}}
 						>
 							{success}
-						</p>
+							<span
+								style={{
+									color: "#60a5fa",
+									cursor: "pointer",
+									textDecoration: "underline",
+									marginTop: "0.3rem",
+								}}
+								onClick={() => (window.location.href = "/login")}
+							>
+								로그인하러 가기
+							</span>
+						</div>
 					)}
 				</form>
 			</div>
