@@ -107,7 +107,7 @@ const getSuggestion = (risk_score = 0, risk_level) => {
 };
 
 const RiskAndRebalance = () => {
-	// 왼쪽 패널 상태 (상세 리포트용)
+	// 상세 리포트용
 	const [items, setItems] = useState([]); // [{stock,ticker,risk_score,risk_level,report,top_news_links}]
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
@@ -118,7 +118,7 @@ const RiskAndRebalance = () => {
 	const [includeInfoLack, setIncludeInfoLack] = useState(true);
 	const [sortKey, setSortKey] = useState("risk_score");
 
-	// 오른쪽 패널 상태 (리밸런싱 제안용)
+	// 리밸런싱 제안용
 	const [rebalanceItems, setRebalanceItems] = useState([]); // [{ticker,company_name,risk_score,...}]
 	const [rebalanceLoading, setRebalanceLoading] = useState(false);
 	const [rebalanceError, setRebalanceError] = useState(null);
@@ -245,7 +245,7 @@ const RiskAndRebalance = () => {
 						marginBottom: 24,
 					}}
 				>
-					{/* === 왼쪽: 리스크 분석 리포트 생성하기 === */}
+					{/* === 왼쪽: 위험 신호 감지하기 === */}
 					<div style={panelCard}>
 						<div
 							style={{
@@ -256,7 +256,135 @@ const RiskAndRebalance = () => {
 							}}
 						>
 							<div style={{ fontWeight: 700, color: "#a5b4fc" }}>
-								리스크 분석 리포트 생성하기
+								위험 신호 감지하기
+							</div>
+							<button
+								style={buttonStyle}
+								onClick={handleGenerateSuggestion}
+								disabled={rebalanceLoading}
+							>
+								{rebalanceLoading ? "생성 중..." : "제안 생성하기"}
+								{rebalanceLoading && <div style={spinnerStyle} />}
+							</button>
+						</div>
+
+						{rebalanceLoading && (
+							<div
+								style={{ textAlign: "center", marginTop: 12, color: "#c4b5fd" }}
+							>
+								<div
+									style={{
+										...spinnerStyle,
+										width: 30,
+										height: 30,
+										margin: "0 auto",
+									}}
+								/>
+								<div style={{ marginTop: 10 }}>제안 생성 중...</div>
+							</div>
+						)}
+
+						{rebalanceError && (
+							<div style={{ color: "#ef4444", marginTop: 12 }}>
+								오류: {rebalanceError}
+							</div>
+						)}
+
+						{!rebalanceLoading && !rebalanceError && rebalanceReady && (
+							<>
+								<div
+									style={{
+										color: "#93c5fd",
+										fontWeight: 600,
+										marginTop: 6,
+										marginBottom: 8,
+									}}
+								>
+									제안 목록 ({rebalanceItems.length}건 기준)
+								</div>
+								<div
+									style={{
+										overflowX: "auto",
+										border: "1px solid #314256",
+										borderRadius: 8,
+									}}
+								>
+									<table style={{ width: "100%", borderCollapse: "collapse" }}>
+										<thead>
+											<tr>
+												{[
+													"티커",
+													"회사",
+													"위험도",
+													"점수",
+													"액션",
+													"권장 변경(%)",
+												].map((h) => (
+													<th
+														key={h}
+														style={{
+															textAlign: "left",
+															padding: "10px 12px",
+															background: "#0b1222",
+															color: "#93c5fd",
+															borderBottom: "1px solid #314256",
+															whiteSpace: "nowrap",
+														}}
+													>
+														{h}
+													</th>
+												))}
+											</tr>
+										</thead>
+										<tbody>
+											{rebalanceRows.map((r) => {
+												const riskRowStyle = {
+													backgroundColor: "rgba(239, 68, 68, 0.2)",
+												};
+
+												return (
+													<tr key={r.key} style={r.is_risk ? riskRowStyle : {}}>
+														<td style={tdStyle}>{r.ticker || "-"}</td>
+														<td style={tdStyle}>{r.stock || "-"}</td>
+														<td style={{ ...tdStyle }}>{r.risk_level}</td>
+														<td style={tdStyle}>{r.risk_score}</td>
+														<td style={tdStyle}>{r.action}</td>
+														<td style={{ ...tdStyle, fontWeight: 800 }}>
+															{r.delta > 0 ? `+${r.delta}` : r.delta}
+														</td>
+													</tr>
+												);
+											})}
+										</tbody>
+									</table>
+								</div>
+								<div style={{ color: "#94a3b8", marginTop: 8, fontSize: 12 }}>
+									* 단순 규칙 기반 제안입니다. 실제 비중 변경 전 추가 검토를
+									권장합니다.
+								</div>
+							</>
+						)}
+
+						{!rebalanceLoading && !rebalanceReady && !rebalanceError && (
+							<div style={{ color: "#cbd5e1", marginTop: 12 }}>
+								우측 상단 버튼으로 리밸런싱 제안을 받아보세요. <br />
+								1~5분 정도 소요됩니다.
+							</div>
+						)}
+					</div>
+
+					{/* === 오른쪽: 리스크 리밸런싱하기 === */}
+					<div style={panelCard}>
+						<div
+							style={{
+								display: "flex",
+								justifyContent: "space-between",
+								alignItems: "center",
+								marginBottom: 10,
+							}}
+						>
+							<div style={{ fontWeight: 700, color: "#a5b4fc" }}>
+								리스크 리밸런싱하기
 							</div>
 							<button style={buttonStyle} onClick={load} disabled={loading}>
 								{loading
@@ -377,142 +505,68 @@ const RiskAndRebalance = () => {
 								</section>
 								{selected.top_news_links &&
 									selected.top_news_links.length > 0 && (
-										<section>
-											{selected.top_news_links.map((top_news_link) => (
-												<div key={top_news_link.uri}>
-													<a href={top_news_link.uri}>{top_news_link.title}</a>
-												</div>
-											))}
+										<section
+											style={{
+												backgroundColor: "#1e293b",
+												borderRadius: 12,
+												padding: "1rem",
+												boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+											}}
+										>
+											<div
+												style={{
+													fontWeight: 600,
+													color: "#a5b4fc",
+													marginBottom: "0.5rem",
+												}}
+											>
+												관련 뉴스:
+											</div>
+											<ul
+												style={{
+													listStyle: "none",
+													padding: 0,
+													margin: 0,
+													display: "flex",
+													flexDirection: "column",
+													gap: "0.5rem",
+												}}
+											>
+												{selected.top_news_links.map((n) => (
+													<li
+														key={n.uri}
+														style={{
+															backgroundColor: "#273549",
+															borderRadius: 8,
+															padding: "0.6rem 0.8rem",
+															transition: "background-color 0.2s ease",
+														}}
+														onMouseEnter={(e) =>
+															(e.currentTarget.style.backgroundColor =
+																"#334155")
+														}
+														onMouseLeave={(e) =>
+															(e.currentTarget.style.backgroundColor =
+																"#273549")
+														}
+													>
+														<a
+															href={n.uri}
+															target="_blank"
+															rel="noreferrer"
+															style={{
+																color: "#93c5fd",
+																fontWeight: 500,
+																textDecoration: "none",
+															}}
+														>
+															{n.title || n.uri}
+														</a>
+													</li>
+												))}
+											</ul>
 										</section>
 									)}
-							</div>
-						)}
-					</div>
-
-					{/* === 오른쪽: 리스크 리밸런싱하기 === */}
-					<div style={panelCard}>
-						<div
-							style={{
-								display: "flex",
-								justifyContent: "space-between",
-								alignItems: "center",
-								marginBottom: 10,
-							}}
-						>
-							<div style={{ fontWeight: 700, color: "#a5b4fc" }}>
-								리스크 리밸런싱하기
-							</div>
-							<button
-								style={buttonStyle}
-								onClick={handleGenerateSuggestion}
-								disabled={rebalanceLoading}
-							>
-								{rebalanceLoading ? "생성 중..." : "제안 생성하기"}
-								{rebalanceLoading && <div style={spinnerStyle} />}
-							</button>
-						</div>
-
-						{rebalanceLoading && (
-							<div
-								style={{ textAlign: "center", marginTop: 12, color: "#c4b5fd" }}
-							>
-								<div
-									style={{
-										...spinnerStyle,
-										width: 30,
-										height: 30,
-										margin: "0 auto",
-									}}
-								/>
-								<div style={{ marginTop: 10 }}>제안 생성 중...</div>
-							</div>
-						)}
-
-						{rebalanceError && (
-							<div style={{ color: "#ef4444", marginTop: 12 }}>
-								오류: {rebalanceError}
-							</div>
-						)}
-
-						{!rebalanceLoading && !rebalanceError && rebalanceReady && (
-							<>
-								<div
-									style={{
-										color: "#93c5fd",
-										fontWeight: 600,
-										marginTop: 6,
-										marginBottom: 8,
-									}}
-								>
-									제안 목록 ({rebalanceItems.length}건 기준)
-								</div>
-								<div
-									style={{
-										overflowX: "auto",
-										border: "1px solid #314256",
-										borderRadius: 8,
-									}}
-								>
-									<table style={{ width: "100%", borderCollapse: "collapse" }}>
-										<thead>
-											<tr>
-												{[
-													"티커",
-													"회사",
-													"위험도",
-													"점수",
-													"액션",
-													"권장 변경(%)",
-												].map((h) => (
-													<th
-														key={h}
-														style={{
-															textAlign: "left",
-															padding: "10px 12px",
-															background: "#0b1222",
-															color: "#93c5fd",
-															borderBottom: "1px solid #314256",
-															whiteSpace: "nowrap",
-														}}
-													>
-														{h}
-													</th>
-												))}
-											</tr>
-										</thead>
-										<tbody>
-											{rebalanceRows.map((r) => {
-												const riskRowStyle = {
-													backgroundColor: "rgba(239, 68, 68, 0.2)",
-												};
-
-												return (
-													<tr key={r.key} style={r.is_risk ? riskRowStyle : {}}>
-														<td style={tdStyle}>{r.ticker || "-"}</td>
-														<td style={tdStyle}>{r.stock || "-"}</td>
-														<td style={{ ...tdStyle }}>{r.risk_level}</td>
-														<td style={tdStyle}>{r.risk_score}</td>
-														<td style={tdStyle}>{r.action}</td>
-														<td style={{ ...tdStyle, fontWeight: 800 }}>
-															{r.delta > 0 ? `+${r.delta}` : r.delta}
-														</td>
-													</tr>
-												);
-											})}
-										</tbody>
-									</table>
-								</div>
-								<div style={{ color: "#94a3b8", marginTop: 8, fontSize: 12 }}>
-									* 단순 규칙 기반 제안입니다. 실제 비중 변경 전 추가 검토를
-									권장합니다.
-								</div>
-							</>
-						)}
-
-						{!rebalanceLoading && !rebalanceReady && !rebalanceError && (
-							<div style={{ color: "#cbd5e1", marginTop: 12 }}>
-								우측 상단 버튼으로 리밸런싱 제안을 받아보세요. <br />
-								1~5분 정도 소요됩니다.
 							</div>
 						)}
 					</div>
