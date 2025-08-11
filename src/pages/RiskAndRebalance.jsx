@@ -245,7 +245,7 @@ const RiskAndRebalance = () => {
 						maxWidth: 960,
 					}}
 				>
-					<div style={panelCard}>
+					<div style={{ ...panelCard, width: "100%" }}>
 						<div
 							style={{
 								display: "flex",
