@@ -450,7 +450,7 @@ const StockSimulation = () => {
 									minWidth: 0,
 								}}
 							>
-								{history.length === 0 && (
+								{history.length === 0 && !loading && (
 									<div style={{ color: "#cbd5e1" }}>기록이 없습니다.</div>
 								)}
 								{history.map((item) => (
@@ -714,7 +714,11 @@ const ResultViewer = ({ result }) => {
 		}
 		if (typeof val === "string") {
 			// impact_reason이나 긴 설명 텍스트는 자동으로 줄바꿈되도록 처리
-			if (val.includes("Impact Reason") || val.includes("impact_reason") || val.length > 200) {
+			if (
+				val.includes("Impact Reason") ||
+				val.includes("impact_reason") ||
+				val.length > 200
+			) {
 				return val;
 			}
 			return val.length > 120 ? val.slice(0, 117) + "..." : val;
@@ -725,15 +729,22 @@ const ResultViewer = ({ result }) => {
 
 	// impact_reason과 같은 긴 텍스트를 위한 특별한 렌더링 함수
 	const renderCellContent = (val, columnName) => {
-		if (typeof val === "string" && (val.includes("Impact Reason") || val.includes("impact_reason") || val.length > 200)) {
+		if (
+			typeof val === "string" &&
+			(val.includes("Impact Reason") ||
+				val.includes("impact_reason") ||
+				val.length > 200)
+		) {
 			return (
-				<div style={{
-					maxWidth: "280px", // 셀 패딩을 고려한 최대 너비
-					wordWrap: "break-word",
-					whiteSpace: "pre-wrap",
-					lineHeight: "1.5",
-					fontSize: "13px",
-				}}>
+				<div
+					style={{
+						maxWidth: "280px", // 셀 패딩을 고려한 최대 너비
+						wordWrap: "break-word",
+						whiteSpace: "pre-wrap",
+						lineHeight: "1.5",
+						fontSize: "13px",
+					}}
+				>
 					{val}
 				</div>
 			);

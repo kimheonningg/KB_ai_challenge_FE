@@ -110,7 +110,7 @@ const AIAssistantDashboard = () => {
 	};
 
 	const onInsight = () => {
-		alert("인사이트 기능 호출");
+		window.location.href = "/insights";
 	};
 
 	const onReport = () => {
@@ -197,7 +197,7 @@ const AIAssistantDashboard = () => {
 						</div>
 					)}
 				</div>
-				
+
 				<InsightsSection
 					onInsight={onInsight}
 					onReport={onReport}
