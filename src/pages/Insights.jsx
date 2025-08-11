@@ -1,6 +1,10 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
-import { fetchDailyBriefing, runTimeMachine } from "../utils/insights";
+import {
+	fetchDailyBriefing,
+	runTimeMachine,
+	fetchInsightHistory,
+} from "../utils/insights";
 import "../styles/aiAssistantPages.css";
 
 const buttonStyle = {
@@ -15,6 +19,18 @@ const buttonStyle = {
 	alignItems: "center",
 	gap: 6,
 };
+const toggleButtonStyle = {
+	background: "rgba(148, 163, 184, 0.15)",
+	border: "1px solid rgba(148, 163, 184, 0.3)",
+	color: "#93c5fd",
+	fontWeight: 600,
+	padding: "6px 12px",
+	marginTop: 8,
+	cursor: "pointer",
+	borderRadius: 8,
+	transition: "background 0.2s, border-color 0.2s",
+};
+
 const spinnerStyle = {
 	width: 20,
 	height: 20,
@@ -159,6 +175,14 @@ const Insights = () => {
 	const [err, setErr] = useState("");
 	const [data, setData] = useState(null);
 
+	// Daily 히스토리
+	const [histAll, setHistAll] = useState([]);
+	const [histLoading, setHistLoading] = useState(false);
+	const [histErr, setHistErr] = useState("");
+	const [histPage, setHistPage] = useState(1);
+	const pageSize = 5;
+	const [histOpen, setHistOpen] = useState(false);
+
 	// Time Machine inputs
 	const [base, setBase] = useState("");
 	const [cmp, setCmp] = useState("");
@@ -224,6 +248,48 @@ const Insights = () => {
 	const currency = (v) =>
 		(v == null ? "-" : Math.round(v).toLocaleString("ko-KR")) + "원";
 	const pct = (v) => (v == null ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(2)}%`);
+
+	// Insights 제목 생성: briefing_date + 모든 event_name
+	const makeInsightTitle = (it) => {
+		const date =
+			it?.briefing_date ||
+			(it?.saved_at ? new Date(it.saved_at).toISOString().slice(0, 10) : "");
+		const events = (it?.economic_events || [])
+			.map((e) => e?.event_name)
+			.filter(Boolean);
+		return [date, ...events].join(" · ");
+	};
+
+	// Insights 히스토리 로드
+	useEffect(() => {
+		if (!histOpen || histAll.length) return;
+		let alive = true;
+		(async () => {
+			try {
+				setHistLoading(true);
+				setHistErr("");
+				const arr = await fetchInsightHistory(); // utils로 이동
+				const sorted = [...arr].sort(
+					(a, b) => new Date(b.saved_at || 0) - new Date(a.saved_at || 0)
+				);
+				if (alive) setHistAll(sorted);
+			} catch (e) {
+				if (alive) setHistErr(e.message || String(e));
+			} finally {
+				if (alive) setHistLoading(false);
+			}
+		})();
+		return () => {
+			alive = false;
+		};
+	}, [histOpen, histAll.length]);
+
+	// Insights 목록 페이지 단위 슬라이스
+	const histTotalPages = Math.max(1, Math.ceil(histAll.length / pageSize));
+	const histItems = useMemo(() => {
+		const start = (histPage - 1) * pageSize;
+		return histAll.slice(start, start + pageSize);
+	}, [histAll, histPage]);
 
 	return (
 		<div className="page">
@@ -394,6 +460,176 @@ const Insights = () => {
 								</Box>
 							</div>
 						</div>
+					)}
+					{!histOpen ? (
+						<div style={{ marginTop: "24px" }}>
+							<button
+								onClick={() => setHistOpen(true)}
+								style={toggleButtonStyle}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.background =
+										"rgba(148, 163, 184, 0.25)";
+									e.currentTarget.style.borderColor =
+										"rgba(148, 163, 184, 0.4)";
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.background =
+										"rgba(148, 163, 184, 0.15)";
+									e.currentTarget.style.borderColor =
+										"rgba(148, 163, 184, 0.3)";
+								}}
+								title="과거 브리핑 목록 보기"
+							>
+								과거의 브리핑 목록 확인하기
+							</button>
+						</div>
+					) : (
+						<div style={{ marginTop: "24px" }}>
+							<button
+								onClick={() => setHistOpen(false)}
+								style={toggleButtonStyle}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.background =
+										"rgba(148, 163, 184, 0.25)";
+									e.currentTarget.style.borderColor =
+										"rgba(148, 163, 184, 0.4)";
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.background =
+										"rgba(148, 163, 184, 0.15)";
+									e.currentTarget.style.borderColor =
+										"rgba(148, 163, 184, 0.3)";
+								}}
+								title="목록 닫기"
+							>
+								닫기
+							</button>
+						</div>
+					)}
+
+					{histOpen && (
+						<>
+							<div
+								style={{
+									display: "flex",
+									justifyContent: "space-between",
+									alignItems: "center",
+									gap: 12,
+									marginTop: 12,
+								}}
+							></div>
+
+							{histErr && (
+								<div style={{ marginTop: 12, color: "#fecaca" }}>
+									오류: {histErr}
+								</div>
+							)}
+
+							<div style={{ marginTop: 14, display: "grid", gap: 10 }}>
+								{histLoading && (
+									<div
+										style={{ display: "flex", alignItems: "center", gap: 8 }}
+									>
+										<span style={spinnerStyle} />
+										<span style={{ color: "#cbd5e1" }}>불러오는 중...</span>
+									</div>
+								)}
+								{!histLoading && histItems.length === 0 && (
+									<div style={{ color: "#94a3b8" }}>
+										표시할 인사이트가 없습니다.
+									</div>
+								)}
+								{!histLoading &&
+									histItems.map((it, idx) => (
+										<div
+											key={it.insight_id || it.saved_at || idx}
+											style={{
+												border: "1px solid #334155",
+												borderRadius: 16,
+												padding: 16,
+												background: "#0b1222",
+												display: "flex",
+												justifyContent: "space-between",
+												alignItems: "center",
+												gap: 10,
+											}}
+										>
+											<div style={{ display: "grid", gap: 6 }}>
+												<div
+													style={{
+														color: "#e5e7eb",
+														fontWeight: 800,
+														fontSize: 18,
+													}}
+												>
+													{makeInsightTitle(it)}
+												</div>
+												<div style={{ color: "#94a3b8", fontSize: 12 }}>
+													저장:{" "}
+													{it.saved_at
+														? new Date(it.saved_at).toLocaleString()
+														: "—"}
+												</div>
+											</div>
+											<button
+												style={{
+													...buttonStyle,
+													padding: "0.5rem 1rem",
+													whiteSpace: "nowrap",
+												}}
+												onClick={() => {
+													setData(it);
+													window.scrollTo({ top: 0, behavior: "smooth" });
+												}}
+												title="이 인사이트 열기"
+											>
+												<span className="material-icons">open_in_new</span>
+												열기
+											</button>
+										</div>
+									))}
+							</div>
+
+							<div
+								style={{
+									marginTop: 10,
+									color: "#94a3b8",
+									display: "flex",
+									justifyContent: "flex-end",
+									alignItems: "center",
+									gap: 12,
+								}}
+							>
+								<>
+									페이지 {histAll.length ? histPage : 0} /{" "}
+									{histAll.length ? histTotalPages : 0} · 총 {histAll.length}개
+								</>
+								<div style={{ display: "flex", gap: 8 }}>
+									<button
+										style={{
+											opacity: histPage === 1 ? 0.5 : 1,
+										}}
+										disabled={histPage === 1 || histLoading}
+										onClick={() => setHistPage((p) => Math.max(1, p - 1))}
+										title="이전 5개"
+									>
+										<span className="material-icons">chevron_left</span>
+									</button>
+									<button
+										style={{
+											opacity: histPage >= histTotalPages ? 0.5 : 1,
+										}}
+										disabled={histPage >= histTotalPages || histLoading}
+										onClick={() =>
+											setHistPage((p) => Math.min(histTotalPages, p + 1))
+										}
+										title="다음 5개"
+									>
+										<span className="material-icons">chevron_right</span>
+									</button>
+								</div>
+							</div>
+						</>
 					)}
 				</section>
 
