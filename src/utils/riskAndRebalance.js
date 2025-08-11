@@ -26,3 +26,14 @@ export const fetchRiskAnalysis = async () => {
 
 	return normalizeRiskReports(res.data);
 };
+
+export const fetchRiskStatus = async () => {
+	const token = localStorage.getItem("authToken");
+	if (!token) throw new Error("로그인이 필요한 서비스입니다.");
+
+	const res = await axios.get(`${BASE_URL}/report/risk-status`, {
+		headers: { Authorization: `Bearer ${token}` },
+	});
+
+	return res.data;
+};
