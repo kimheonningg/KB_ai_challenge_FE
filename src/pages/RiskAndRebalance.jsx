@@ -314,7 +314,7 @@ const RiskAndRebalance = () => {
 											<div style={{ color: "#cbd5e1", marginTop: 4 }}>
 												risk_score:{" "}
 												<b style={{ color: isRisk ? "#fca5a5" : "#a7f3d0" }}>
-													{Number(r.risk_score ?? 0).toFixed(2)}
+													{Number(r.risk_score ?? 0)}
 												</b>
 											</div>
 										</div>
@@ -354,7 +354,7 @@ const RiskAndRebalance = () => {
 									<span style={badge(selected.risk_level)}>
 										{selected.risk_level}
 									</span>{" "}
-									| 점수: <b>{Number(selected.risk_score ?? 0).toFixed(2)}</b>
+									| 점수: <b>{Number(selected.risk_score ?? 0)}</b>
 								</div>
 								<section
 									style={{
@@ -378,7 +378,7 @@ const RiskAndRebalance = () => {
 								{selected.top_news_links &&
 									selected.top_news_links.length > 0 && (
 										<section>
-											{top_news_links.map((top_news_link) => (
+											{selected.top_news_links.map((top_news_link) => (
 												<div key={top_news_link.uri}>
 													<a href={top_news_link.uri}>{top_news_link.title}</a>
 												</div>
