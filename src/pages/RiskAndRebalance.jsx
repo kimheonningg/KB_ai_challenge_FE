@@ -233,7 +233,7 @@ const RiskAndRebalance = () => {
 
 			<div className="container">
 				<div className="header-wrapper">
-					<h1 className="header-title">위험신호 감지 및 리밸런싱</h1>
+					<h1 className="header-title">위험 신호 감지 및 리밸런싱</h1>
 				</div>
 
 				<section
@@ -255,7 +255,7 @@ const RiskAndRebalance = () => {
 							}}
 						>
 							<div style={{ fontWeight: 700, color: "#a5b4fc" }}>
-								리스크 분석 리포트 생성하기
+								리스크 리밸런싱하기
 							</div>
 							<button style={buttonStyle} onClick={load} disabled={loading}>
 								{loading
@@ -376,12 +376,47 @@ const RiskAndRebalance = () => {
 								</section>
 								{selected.top_news_links &&
 									selected.top_news_links.length > 0 && (
-										<section>
-											{selected.top_news_links.map((top_news_link) => (
-												<div key={top_news_link.uri}>
-													<a href={top_news_link.uri}>{top_news_link.title}</a>
-												</div>
-											))}
+										<section
+											style={{
+												backgroundColor: "#1e293b",
+												borderRadius: 12,
+												padding: "1rem",
+												boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+											}}
+										>
+											<div
+												style={{
+													fontWeight: 600,
+													color: "#a5b4fc",
+													marginBottom: "0.5rem",
+												}}
+											>
+												관련 뉴스:
+											</div>
+											<ul
+												style={{
+													color: "#93c5fd",
+													fontWeight: 600,
+													paddingLeft: 18,
+													margin: 0,
+												}}
+											>
+												{selected.top_news_links.map((n, i) => (
+													<li key={i}>
+														<a
+															href={n.url}
+															target="_blank"
+															rel="noreferrer"
+															style={{
+																color: "inherit",
+																textDecoration: "underline",
+															}}
+														>
+															{n.title || n.url}
+														</a>
+													</li>
+												))}
+											</ul>
 										</section>
 									)}
 							</div>
@@ -398,14 +433,14 @@ const RiskAndRebalance = () => {
 							}}
 						>
 							<div style={{ fontWeight: 700, color: "#a5b4fc" }}>
-								리스크 리밸런싱하기
+								위험 신호 감지하기
 							</div>
 							<button
 								style={buttonStyle}
 								onClick={handleGenerateSuggestion}
 								disabled={rebalanceLoading}
 							>
-								{rebalanceLoading ? "생성 중..." : "제안 생성하기"}
+								{rebalanceLoading ? "생성 중..." : "신호 감지하기"}
 								{rebalanceLoading && <div style={spinnerStyle} />}
 							</button>
 						</div>
