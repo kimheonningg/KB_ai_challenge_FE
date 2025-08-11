@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { addFavStock, deleteFavStock, isFavStock } from "../utils/favstocks";
+import StockChart from "./StockChart";
 
 const StockInfo = ({ stock, onRemove }) => {
 	const ticker = stock["01. symbol"];
@@ -14,6 +15,7 @@ const StockInfo = ({ stock, onRemove }) => {
 		typeof stock._favorited === "boolean" ? stock._favorited : false
 	);
 	const [busy, setBusy] = useState(false);
+	const [showChart, setShowChart] = useState(false);
 
 	useEffect(() => {
 		let mounted = true;
@@ -55,6 +57,8 @@ const StockInfo = ({ stock, onRemove }) => {
 				borderRadius: "8px",
 				color: "white",
 				position: "relative",
+				width: "100%",
+				boxSizing: "border-box",
 			}}
 		>
 			<div style={{ fontSize: "20px", fontWeight: "bold" }}>
@@ -78,6 +82,29 @@ const StockInfo = ({ stock, onRemove }) => {
 					{isUp ? "▲" : "▼"} {change.toFixed(2)} ({changePercent})
 				</span>
 			</div>
+
+			{/* 차트 표시 버튼 */}
+			<button
+				onClick={() => setShowChart(!showChart)}
+				style={{
+					position: "absolute",
+					right: "60px",
+					top: "10px",
+					background: "transparent",
+					border: "none",
+					cursor: "pointer",
+					fontSize: "16px",
+					color: showChart ? "#3b82f6" : "#94a3b8",
+					padding: "4px",
+					borderRadius: "4px",
+					transition: "all 0.2s ease"
+				}}
+				title={showChart ? "차트 숨기기" : "차트 보기"}
+			>
+				<span className="material-icons" style={{ fontSize: "18px" }}>
+					{showChart ? "visibility_off" : "show_chart"}
+				</span>
+			</button>
 
 			<button
 				title={favorited ? "즐겨찾기 해제" : "즐겨찾기 추가"}
@@ -117,6 +144,14 @@ const StockInfo = ({ stock, onRemove }) => {
 			>
 				×
 			</button>
+
+			{/* 차트 표시 */}
+			{showChart && (
+				<StockChart 
+					symbol={ticker} 
+					onClose={() => setShowChart(false)} 
+				/>
+			)}
 		</div>
 	);
 };

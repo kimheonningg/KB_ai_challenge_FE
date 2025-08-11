@@ -5,7 +5,7 @@ const BASE_URL = "https://www.alphavantage.co/query";
 
 // API 호출 제한 관리 - 분당 2회
 let lastCallTime = 0;
-const MIN_CALL_INTERVAL = 6 * 1000; // 60초 (분당 1회 = 60초 간격)
+const MIN_CALL_INTERVAL = 3 * 1000; // 60초 (분당 1회 = 60초 간격)
 
 // 캐시 시스템 - 30초간 유효
 const CACHE_DURATION = 30 * 1000; // 30초
@@ -253,6 +253,66 @@ export async function searchSymbol(keyword) {
 	const matches = data.bestMatches || [];
 	setCachedData(cacheKey, matches);
 	return matches;
+}
+
+// 주식 차트 데이터 가져오기 (일별 데이터)
+export async function fetchStockChart(symbol, timeSeries = "TIME_SERIES_DAILY") {
+	const cacheKey = getCacheKey('chart', symbol, timeSeries);
+	const cached = getCachedData(cacheKey);
+	
+	if (cached) {
+		console.log(`캐시된 차트 데이터 사용: ${symbol} (30초 내 재사용)`);
+		return cached;
+	}
+	
+	console.log(`새로운 차트 데이터 API 호출: ${symbol}`);
+	try {
+		const data = await makeApiCall({
+			function: timeSeries,
+			symbol,
+			apikey: API_KEY,
+		});
+
+		const timeSeriesData = data[`Time Series (${timeSeries === "TIME_SERIES_DAILY" ? "Daily" : "Intraday"})`];
+		if (!timeSeriesData) {
+			console.error("No time series data available for chart");
+			return null;
+		}
+
+		// 최근 90일 데이터 사용 (차트를 더 자세하게 표시)
+		const dates = Object.keys(timeSeriesData).sort().reverse().slice(0, 90);
+		const chartData = dates.map(date => ({
+			date: date,
+			open: parseFloat(timeSeriesData[date]["1. open"]),
+			high: parseFloat(timeSeriesData[date]["2. high"]),
+			low: parseFloat(timeSeriesData[date]["3. low"]),
+			close: parseFloat(timeSeriesData[date]["4. close"]),
+			volume: parseInt(timeSeriesData[date]["5. volume"])
+		})).reverse(); // 차트는 시간순으로 정렬
+
+		const result = {
+			symbol: symbol,
+			data: chartData,
+			meta: {
+				lastRefreshed: data["Meta Data"]["3. Last Refreshed"],
+				timeZone: data["Meta Data"]["5. Time Zone"]
+			}
+		};
+
+		setCachedData(cacheKey, result);
+		setPersistentCache(cacheKey, result);
+		return result;
+	} catch (err) {
+		console.error(`차트 데이터 가져오기 실패: ${symbol}`, err);
+		// 실패 시 마지막으로 성공한 값 사용
+		const persisted = getPersistentCache(cacheKey, { ignoreTTL: true });
+		if (persisted) {
+			console.warn("API 실패로 영속 캐시 사용(chart):", symbol);
+			setCachedData(cacheKey, persisted);
+			return persisted;
+		}
+		throw err;
+	}
 }
 
 // 캐시 초기화 함수 (필요시 사용)
