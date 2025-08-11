@@ -203,7 +203,8 @@ const RiskAndRebalance = () => {
 				stock: r.company_name, // API 응답에 맞춰 company_name 사용
 				ticker: r.ticker,
 				risk_level: r.risk_level,
-				risk_score: Number(r.risk_score ?? 0).toFixed(2),
+				risk_score: Number(r.risk_score ?? 0),
+				is_risk: r.is_risk,
 				action,
 				delta,
 			};
@@ -376,7 +377,13 @@ const RiskAndRebalance = () => {
 								</section>
 								{selected.top_news_links &&
 									selected.top_news_links.length > 0 && (
-										<section> {/* ... 관련 뉴스 ... */} </section>
+										<section>
+											{top_news_links.map((top_news_link) => (
+												<div key={top_news_link.uri}>
+													<a href={top_news_link.uri}>{top_news_link.title}</a>
+												</div>
+											))}
+										</section>
 									)}
 							</div>
 						)}
@@ -474,18 +481,24 @@ const RiskAndRebalance = () => {
 											</tr>
 										</thead>
 										<tbody>
-											{rebalanceRows.map((r) => (
-												<tr key={r.key}>
-													<td style={tdStyle}>{r.ticker || "-"}</td>
-													<td style={tdStyle}>{r.stock || "-"}</td>
-													<td style={{ ...tdStyle }}>{r.risk_level}</td>
-													<td style={tdStyle}>{r.risk_score}</td>
-													<td style={tdStyle}>{r.action}</td>
-													<td style={{ ...tdStyle, fontWeight: 800 }}>
-														{r.delta > 0 ? `+${r.delta}` : r.delta}
-													</td>
-												</tr>
-											))}
+											{rebalanceRows.map((r) => {
+												const riskRowStyle = {
+													backgroundColor: "rgba(239, 68, 68, 0.2)",
+												};
+
+												return (
+													<tr key={r.key} style={r.is_risk ? riskRowStyle : {}}>
+														<td style={tdStyle}>{r.ticker || "-"}</td>
+														<td style={tdStyle}>{r.stock || "-"}</td>
+														<td style={{ ...tdStyle }}>{r.risk_level}</td>
+														<td style={tdStyle}>{r.risk_score}</td>
+														<td style={tdStyle}>{r.action}</td>
+														<td style={{ ...tdStyle, fontWeight: 800 }}>
+															{r.delta > 0 ? `+${r.delta}` : r.delta}
+														</td>
+													</tr>
+												);
+											})}
 										</tbody>
 									</table>
 								</div>
