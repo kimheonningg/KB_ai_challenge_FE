@@ -181,7 +181,9 @@ const Insights = () => {
 	const [histErr, setHistErr] = useState("");
 	const [histPage, setHistPage] = useState(1);
 	const pageSize = 5;
+
 	const [histOpen, setHistOpen] = useState(false);
+	const [expandedInsightId, setExpandedInsightId] = useState(null);
 
 	// Time Machine inputs
 	const [base, setBase] = useState("");
@@ -540,54 +542,177 @@ const Insights = () => {
 									</div>
 								)}
 								{!histLoading &&
-									histItems.map((it, idx) => (
-										<div
-											key={it.insight_id || it.saved_at || idx}
-											style={{
-												border: "1px solid #334155",
-												borderRadius: 16,
-												padding: 16,
-												background: "#0b1222",
-												display: "flex",
-												justifyContent: "space-between",
-												alignItems: "center",
-												gap: 10,
-											}}
-										>
-											<div style={{ display: "grid", gap: 6 }}>
+									histItems.map((it, idx) => {
+										const id = it.insight_id || it.saved_at || String(idx);
+										const isOpen = expandedInsightId === id;
+										return (
+											<div
+												key={id}
+												style={{
+													border: "1px solid #334155",
+													borderRadius: 16,
+													padding: 16,
+													background: "#0b1222",
+													alignItems: "center",
+													gap: 10,
+												}}
+											>
 												<div
 													style={{
-														color: "#e5e7eb",
-														fontWeight: 800,
-														fontSize: 18,
+														display: "flex",
+														justifyContent: "space-between",
+														alignItems: "center",
+														gap: 10,
 													}}
 												>
-													{makeInsightTitle(it)}
+													<div style={{ display: "grid", gap: 6 }}>
+														<div
+															style={{
+																color: "#e5e7eb",
+																fontWeight: 800,
+																fontSize: 18,
+															}}
+														>
+															{makeInsightTitle(it)}
+														</div>
+														<div style={{ color: "#94a3b8", fontSize: 12 }}>
+															저장:{" "}
+															{it.saved_at
+																? new Date(it.saved_at).toLocaleString()
+																: "—"}
+														</div>
+													</div>
+													<button
+														style={{
+															...buttonStyle,
+															padding: "0.5rem 1rem",
+															whiteSpace: "nowrap",
+														}}
+														onClick={() =>
+															setExpandedInsightId(isOpen ? null : id)
+														}
+														title={isOpen ? "닫기" : "이 인사이트 열기"}
+													>
+														<span className="material-icons">
+															{isOpen ? "expand_less" : "open_in_new"}
+														</span>
+														{isOpen ? "닫기" : "열기"}
+													</button>
 												</div>
-												<div style={{ color: "#94a3b8", fontSize: 12 }}>
-													저장:{" "}
-													{it.saved_at
-														? new Date(it.saved_at).toLocaleString()
-														: "—"}
-												</div>
+
+												{/* 펼쳐진 내용 */}
+												{isOpen && (
+													<div
+														style={{ display: "grid", gap: 12, marginTop: 20 }}
+													>
+														{(it.economic_events?.length || 0) > 0 && (
+															<Box>
+																<div
+																	style={{
+																		fontWeight: 700,
+																		color: "#e5e7eb",
+																		marginBottom: 6,
+																	}}
+																>
+																	이벤트 상세
+																</div>
+																<div style={{ display: "grid", gap: 10 }}>
+																	{it.economic_events.map((ev, j) => (
+																		<div
+																			key={j}
+																			style={{
+																				border: "1px solid #334155",
+																				borderRadius: 8,
+																				padding: 12,
+																				background: "#0b1222",
+																			}}
+																		>
+																			<div
+																				style={{
+																					display: "flex",
+																					justifyContent: "space-between",
+																					alignItems: "center",
+																					marginBottom: 6,
+																				}}
+																			>
+																				<div
+																					style={{
+																						color: "#e5e7eb",
+																						fontWeight: 700,
+																					}}
+																				>
+																					{ev.event_name}
+																				</div>
+																				{ev.event_date && (
+																					<Chip tone="blue">
+																						{new Date(
+																							ev.event_date
+																						).toLocaleDateString()}
+																					</Chip>
+																				)}
+																			</div>
+																			<div
+																				style={{
+																					color: "#cbd5e1",
+																					lineHeight: 1.6,
+																				}}
+																			>
+																				<ReactMarkdown>
+																					{ev.impact_analysis || "-"}
+																				</ReactMarkdown>
+																			</div>
+																		</div>
+																	))}
+																</div>
+															</Box>
+														)}
+
+														<div
+															style={{
+																display: "grid",
+																gridTemplateColumns:
+																	"repeat(auto-fit, minmax(260px, 1fr))",
+																gap: 12,
+															}}
+														>
+															<Box>
+																<div
+																	style={{
+																		fontWeight: 700,
+																		color: "#e5e7eb",
+																		marginBottom: 6,
+																	}}
+																>
+																	가장 크게 오른 주식
+																</div>{" "}
+																<div style={{ color: "#94a3b8" }}>
+																	{it.top_gainer
+																		? JSON.stringify(it.top_gainer)
+																		: "데이터 없음"}
+																</div>
+															</Box>
+															<Box>
+																<div
+																	style={{
+																		fontWeight: 700,
+																		color: "#e5e7eb",
+																		marginBottom: 6,
+																	}}
+																>
+																	가장 크게 내린 주식
+																</div>
+																<div style={{ color: "#94a3b8" }}>
+																	{it.top_loser
+																		? JSON.stringify(it.top_loser)
+																		: "데이터 없음"}{" "}
+																</div>
+															</Box>
+														</div>
+													</div>
+												)}
 											</div>
-											<button
-												style={{
-													...buttonStyle,
-													padding: "0.5rem 1rem",
-													whiteSpace: "nowrap",
-												}}
-												onClick={() => {
-													setData(it);
-													window.scrollTo({ top: 0, behavior: "smooth" });
-												}}
-												title="이 인사이트 열기"
-											>
-												<span className="material-icons">open_in_new</span>
-												열기
-											</button>
-										</div>
-									))}
+										);
+									})}
 							</div>
 
 							<div
