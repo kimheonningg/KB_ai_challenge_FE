@@ -14,3 +14,28 @@ export const fetchDailyBriefing = async () => {
 
 	return res.data;
 };
+export const runTimeMachine = async ({
+	base_ticker,
+	comparison_ticker,
+	investment_amount,
+	investment_date,
+}) => {
+	const token = localStorage.getItem("authToken");
+	if (!token) throw new Error("로그인이 필요한 서비스입니다.");
+
+	const payload = {
+		base_ticker,
+		comparison_ticker,
+		investment_amount,
+		investment_date,
+	};
+
+	const res = await axios.post(`${BASE_URL}/insight/time-machine`, payload, {
+		headers: {
+			Authorization: `Bearer ${token}`,
+			"Content-Type": "application/json",
+		},
+	});
+
+	return res.data; // { graph_data, final_metrics, ai_analysis }
+};

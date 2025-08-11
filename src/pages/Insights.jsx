@@ -1,16 +1,16 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { fetchDailyBriefing } from "../utils/insights";
+import { fetchDailyBriefing, runTimeMachine } from "../utils/insights";
 import "../styles/aiAssistantPages.css";
 
 const buttonStyle = {
 	padding: "0.5rem 1.2rem",
 	borderRadius: 8,
-	backgroundColor: "#7c3aed",
+	background: "#7c3aed",
 	color: "#fff",
 	border: "none",
 	cursor: "pointer",
-	fontWeight: "600",
+	fontWeight: 600,
 	display: "flex",
 	alignItems: "center",
 	gap: 6,
@@ -24,13 +24,20 @@ const spinnerStyle = {
 	animation: "spin 1s linear infinite",
 };
 const panelCard = {
-	backgroundColor: "#1e293b",
+	background: "#1e293b",
 	borderRadius: 12,
 	padding: "1.25rem 1.5rem",
-	boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+	boxShadow: "0 4px 10px rgba(0,0,0,.2)",
+};
+const inputStyle = {
+	borderRadius: 8,
+	border: "1px solid #334155",
+	background: "#0f172a",
+	color: "#e5e7eb",
+	padding: "8px 10px",
 };
 const tdStyle = {
-	padding: "12px 16px",
+	padding: "10px 12px",
 	borderBottom: "1px solid #314256",
 	color: "#e5e7eb",
 	verticalAlign: "top",
@@ -69,7 +76,6 @@ const Chip = ({ tone = "gray", children }) => {
 				color: t.fg,
 				fontSize: 12,
 				fontWeight: 700,
-				whiteSpace: "nowrap",
 			}}
 		>
 			{children}
@@ -77,66 +83,98 @@ const Chip = ({ tone = "gray", children }) => {
 	);
 };
 
-const CardMover = ({ title, mover, tone }) => (
-	<Box>
-		<div
-			style={{
-				display: "flex",
-				justifyContent: "space-between",
-				marginBottom: 8,
-			}}
-		>
-			<div style={{ fontWeight: 700, color: "#e5e7eb" }}>{title}</div>
-			<Chip tone={tone}>{tone === "green" ? "급등" : "급락"}</Chip>
+const LineChart = ({ series = [], height = 260, padding = 32 }) => {
+	const width = 720;
+	const points = series.flatMap((s) => s.data ?? []);
+	if (!points.length) return null;
+	const xs = points.map((p) => +p.x);
+	const ys = points.map((p) => p.y).filter((v) => !Number.isNaN(v));
+	const minX = Math.min(...xs),
+		maxX = Math.max(...xs);
+	const minY = Math.min(...ys),
+		maxY = Math.max(...ys);
+	const plotW = width - padding * 2,
+		plotH = height - padding * 2;
+	const sx = (t) => padding + ((t - minX) / (maxX - minX || 1)) * plotW;
+	const sy = (v) => padding + (1 - (v - minY) / (maxY - minY || 1)) * plotH;
+	const path = (data) =>
+		(data || [])
+			.filter((p) => !Number.isNaN(p.y))
+			.map((p, i) => `${i ? "L" : "M"} ${sx(+p.x)} ${sy(p.y)}`)
+			.join(" ");
+
+	return (
+		<div style={{ overflowX: "auto" }}>
+			<svg width={width} height={height} style={{ display: "block" }}>
+				<line
+					x1={padding}
+					y1={height - padding}
+					x2={width - padding}
+					y2={height - padding}
+					stroke="#334155"
+				/>
+				<line
+					x1={padding}
+					y1={padding}
+					x2={padding}
+					y2={height - padding}
+					stroke="#334155"
+				/>
+				{series.map((s, i) => (
+					<path
+						key={i}
+						d={path(s.data)}
+						fill="none"
+						stroke={i ? "#a78bfa" : "#60a5fa"}
+						strokeWidth="2"
+					/>
+				))}
+				{series.map((s, i) => (
+					<g key={`legend-${i}`}>
+						<rect
+							x={padding + i * 160}
+							y={8}
+							width="14"
+							height="4"
+							fill={i ? "#a78bfa" : "#60a5fa"}
+						/>
+						<text
+							x={padding + 22 + i * 160}
+							y={13}
+							fill="#cbd5e1"
+							fontSize="12"
+						>
+							{s.name}
+						</text>
+					</g>
+				))}
+			</svg>
 		</div>
-		{!mover ? (
-			<div style={{ color: "#94a3b8" }}>데이터가 없습니다.</div>
-		) : (
-			<div style={{ display: "grid", gap: 6 }}>
-				<div style={{ color: "#e5e7eb", fontWeight: 700 }}>
-					{mover.ticker || mover.symbol || "-"}
-				</div>
-				<div style={{ color: tone === "green" ? "#86efac" : "#fecaca" }}>
-					{typeof mover.changePct === "number"
-						? `${mover.changePct > 0 ? "+" : ""}${mover.changePct.toFixed(2)}%`
-						: mover.change ?? "-"}
-				</div>
-				{mover.sector && <div style={{ color: "#cbd5e1" }}>{mover.sector}</div>}
-				{mover.analysis && (
-					<div style={{ color: "#cbd5e1" }}>{mover.analysis}</div>
-				)}
-				{mover.education && (
-					<Box style={{ background: "#0b1222" }}>
-						<div style={{ fontWeight: 700, color: "#e5e7eb", marginBottom: 6 }}>
-							학습 포인트
-						</div>
-						{Array.isArray(mover.education) ? (
-							<ul style={{ margin: 0, paddingLeft: 18, color: "#cbd5e1" }}>
-								{mover.education.map((t, i) => (
-									<li key={i}>{t}</li>
-								))}
-							</ul>
-						) : (
-							<div style={{ color: "#cbd5e1" }}>{mover.education}</div>
-						)}
-					</Box>
-				)}
-			</div>
-		)}
-	</Box>
-);
+	);
+};
 
 const Insights = () => {
+	// Daily
 	const [loading, setLoading] = useState(false);
 	const [err, setErr] = useState("");
 	const [data, setData] = useState(null);
+
+	// Time Machine inputs
+	const [base, setBase] = useState("");
+	const [cmp, setCmp] = useState("");
+	const [amount, setAmount] = useState(null);
+	const [date, setDate] = useState(null);
+
+	// Time Machine results
+	const [tmLoading, setTmLoading] = useState(false);
+	const [tmErr, setTmErr] = useState("");
+	const [tm, setTm] = useState(null);
 
 	const loadBriefing = async () => {
 		setErr("");
 		setLoading(true);
 		try {
-			const json = await fetchDailyBriefing();
-			setData(json);
+			setData(await fetchDailyBriefing());
 		} catch (e) {
 			setErr(e.message || String(e));
 			setData(null);
@@ -144,6 +182,48 @@ const Insights = () => {
 			setLoading(false);
 		}
 	};
+
+	const onRunTimeMachine = async () => {
+		setTmErr("");
+		setTm(null);
+		setTmLoading(true);
+		try {
+			const res = await runTimeMachine({
+				base_ticker: base.trim().toUpperCase(),
+				comparison_ticker: cmp.trim().toUpperCase(),
+				investment_amount: Number(amount),
+				investment_date: date,
+			});
+			setTm(res);
+		} catch (e) {
+			setTmErr(e.message || String(e));
+		} finally {
+			setTmLoading(false);
+		}
+	};
+
+	// 그래프용 시리즈 변환 (응답: [{date, TSLA, AAPL}, ...])
+	const tmSeries = useMemo(() => {
+		if (!tm?.graph_data?.length) return [];
+		const b = base.trim().toUpperCase();
+		const c = cmp.trim().toUpperCase();
+		const baseSeries = tm.graph_data.map((r) => ({
+			x: new Date(r.date),
+			y: Number(r[b]),
+		}));
+		const cmpSeries = tm.graph_data.map((r) => ({
+			x: new Date(r.date),
+			y: Number(r[c]),
+		}));
+		return [
+			{ name: `${b}`, data: baseSeries },
+			{ name: `${c}`, data: cmpSeries },
+		];
+	}, [tm, base, cmp]);
+
+	const currency = (v) =>
+		(v == null ? "-" : Math.round(v).toLocaleString("ko-KR")) + "원";
+	const pct = (v) => (v == null ? "-" : `${v > 0 ? "+" : ""}${v.toFixed(2)}%`);
 
 	return (
 		<div className="page">
@@ -167,11 +247,10 @@ const Insights = () => {
 			<div className="container">
 				<div className="header-wrapper" style={{ marginBottom: 16 }}>
 					<h1 className="header-title">인사이트 얻기</h1>
-					<div style={{ color: "#94a3b8" }}>
-						내 보유종목과 연관된 핵심 이벤트 & 급등/급락 분석
-					</div>
+					<div style={{ color: "#94a3b8" }}>오늘의 브리핑 & 타임머신 실험</div>
 				</div>
 
+				{/* ===== 오늘의 브리핑 ===== */}
 				<section style={{ ...panelCard }}>
 					<div
 						style={{
@@ -226,20 +305,19 @@ const Insights = () => {
 								<Box>
 									<div
 										style={{
-											marginLeft: 10,
-											fontSize: 24,
 											fontWeight: 800,
 											color: "#e5e7eb",
 											marginBottom: 8,
+											fontSize: 18,
 										}}
 									>
 										곧 있을 경제/금융 이벤트와 그에 따른 포트폴리오에 미치는
 										영향
 									</div>
 									<div style={{ display: "grid", gap: 12 }}>
-										{data.economic_events.map((ev, idx) => (
+										{data.economic_events.map((ev, i) => (
 											<div
-												key={idx}
+												key={i}
 												style={{
 													border: "1px solid #334155",
 													borderRadius: 8,
@@ -253,7 +331,6 @@ const Insights = () => {
 														justifyContent: "space-between",
 														alignItems: "center",
 														marginBottom: 8,
-														gap: 8,
 													}}
 												>
 													<div style={{ color: "#e5e7eb", fontWeight: 700 }}>
@@ -276,7 +353,6 @@ const Insights = () => {
 								</Box>
 							)}
 
-							{/* Top gainer / loser */}
 							<div
 								style={{
 									display: "grid",
@@ -284,20 +360,44 @@ const Insights = () => {
 									gap: 12,
 								}}
 							>
-								<CardMover
-									title="가장 크게 오른 주식"
-									mover={data.top_gainer}
-									tone="green"
-								/>
-								<CardMover
-									title="가장 크게 내린 주식"
-									mover={data.top_loser}
-									tone="red"
-								/>
+								<Box>
+									<div
+										style={{
+											fontWeight: 700,
+											color: "#e5e7eb",
+											marginBottom: 6,
+										}}
+									>
+										가장 크게 오른 주식
+									</div>
+									<div style={{ color: "#94a3b8" }}>
+										{data.top_gainer
+											? JSON.stringify(data.top_gainer)
+											: "데이터 없음"}
+									</div>
+								</Box>
+								<Box>
+									<div
+										style={{
+											fontWeight: 700,
+											color: "#e5e7eb",
+											marginBottom: 6,
+										}}
+									>
+										가장 크게 내린 주식
+									</div>
+									<div style={{ color: "#94a3b8" }}>
+										{data.top_loser
+											? JSON.stringify(data.top_loser)
+											: "데이터 없음"}
+									</div>
+								</Box>
 							</div>
 						</div>
 					)}
 				</section>
+
+				{/* ===== 타임머신 ===== */}
 				<section style={{ ...panelCard, marginTop: 20 }}>
 					<div
 						style={{
@@ -305,6 +405,7 @@ const Insights = () => {
 							justifyContent: "space-between",
 							alignItems: "center",
 							gap: 12,
+							flexWrap: "wrap",
 						}}
 					>
 						<div>
@@ -321,21 +422,190 @@ const Insights = () => {
 								</>
 							</div>
 						</div>
-						<button onClick={() => {}} style={buttonStyle} disabled={loading}>
-							{loading ? (
-								<span style={spinnerStyle} />
-							) : (
-								<span className="material-icons">auto_awesome</span>
-							)}
-							<span>{loading ? "불러오는 중..." : "실험하기"}</span>
-						</button>
+						<div
+							style={{
+								width: "100%",
+								display: "flex",
+								gap: 8,
+								flexWrap: "wrap",
+								justifyContent: "space-between",
+							}}
+						>
+							<div
+								style={{ display: "flex", gap: 8, flexWrap: "wrap", flex: 1 }}
+							>
+								<input
+									style={inputStyle}
+									value={base}
+									onChange={(e) => setBase(e.target.value)}
+									placeholder="Base (예: TSLA)"
+								/>
+								<span style={{ color: "#94a3b8" }}>→</span>
+								<input
+									style={inputStyle}
+									value={cmp}
+									onChange={(e) => setCmp(e.target.value)}
+									placeholder="Comparison (예: AAPL)"
+								/>
+								<input
+									style={inputStyle}
+									type="number"
+									value={amount}
+									onChange={(e) => setAmount(e.target.value)}
+									min={1}
+									placeholder="주식 수량 (KRW)"
+								/>
+								<input
+									style={inputStyle}
+									type="date"
+									value={date}
+									onChange={(e) => setDate(e.target.value)}
+								/>
+							</div>
+							<div style={{ marginLeft: 12 }}>
+								<button
+									onClick={onRunTimeMachine}
+									style={buttonStyle}
+									disabled={tmLoading}
+								>
+									{tmLoading ? (
+										<span style={spinnerStyle} />
+									) : (
+										<span className="material-icons">query_stats</span>
+									)}
+									<span>{tmLoading ? "계산 중..." : "실험하기"}</span>
+								</button>
+							</div>
+						</div>
 					</div>
+
+					{tmErr && (
+						<div style={{ marginTop: 12, color: "#fecaca" }}>오류: {tmErr}</div>
+					)}
+
+					{tm && (
+						<div style={{ marginTop: 16, display: "grid", gap: 16 }}>
+							{/* 그래프 */}
+							<Box>
+								<div
+									style={{ fontWeight: 700, color: "#e5e7eb", marginBottom: 8 }}
+								>
+									자산가치 추이
+								</div>
+								<LineChart series={tmSeries} />
+							</Box>
+
+							{/* 메트릭 요약 */}
+							<Box>
+								<div
+									style={{ fontWeight: 700, color: "#e5e7eb", marginBottom: 8 }}
+								>
+									최종 지표
+								</div>
+								<table style={{ width: "100%", borderCollapse: "collapse" }}>
+									<thead>
+										<tr>
+											<th
+												style={{
+													...tdStyle,
+													color: "#93c5fd",
+													textAlign: "left",
+												}}
+											>
+												구분
+											</th>
+											<th
+												style={{
+													...tdStyle,
+													color: "#93c5fd",
+													textAlign: "right",
+												}}
+											>
+												최종 가치
+											</th>
+											<th
+												style={{
+													...tdStyle,
+													color: "#93c5fd",
+													textAlign: "right",
+												}}
+											>
+												총수익률
+											</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr>
+											<td style={tdStyle}>{base}</td>
+											<td style={{ ...tdStyle, textAlign: "right" }}>
+												{currency(
+													tm.final_metrics?.base_ticker_metrics?.final_value
+												)}
+											</td>
+											<td style={{ ...tdStyle, textAlign: "right" }}>
+												{pct(
+													tm.final_metrics?.base_ticker_metrics
+														?.total_return_percent
+												)}
+											</td>
+										</tr>
+										<tr>
+											<td style={tdStyle}>{cmp}</td>
+											<td style={{ ...tdStyle, textAlign: "right" }}>
+												{currency(
+													tm.final_metrics?.comparison_ticker_metrics
+														?.final_value
+												)}
+											</td>
+											<td style={{ ...tdStyle, textAlign: "right" }}>
+												{pct(
+													tm.final_metrics?.comparison_ticker_metrics
+														?.total_return_percent
+												)}
+											</td>
+										</tr>
+										<tr>
+											<td style={tdStyle}>
+												<b>차이</b>
+											</td>
+											<td
+												style={{
+													...tdStyle,
+													textAlign: "right",
+													fontWeight: 800,
+												}}
+											>
+												{currency(tm.final_metrics?.profit_difference)}
+											</td>
+											<td style={{ ...tdStyle, textAlign: "right" }}>—</td>
+										</tr>
+									</tbody>
+								</table>
+							</Box>
+
+							{/* AI 해설/교육 */}
+							{tm.ai_analysis && (
+								<Box>
+									<div
+										style={{
+											fontWeight: 700,
+											color: "#e5e7eb",
+											marginBottom: 8,
+										}}
+									>
+										AI 분석 & 교육
+									</div>
+									<div style={{ color: "#cbd5e1", lineHeight: 1.65 }}>
+										<ReactMarkdown>{tm.ai_analysis}</ReactMarkdown>
+									</div>
+								</Box>
+							)}
+						</div>
+					)}
 				</section>
 			</div>
 
-			<style>{`
-        @keyframes spin { 0% { transform: rotate(0deg);} 100% { transform: rotate(360deg);} }
-      `}</style>
+			<style>{`@keyframes spin{0%{transform:rotate(0)}100%{transform:rotate(360deg)}}`}</style>
 		</div>
 	);
 };
