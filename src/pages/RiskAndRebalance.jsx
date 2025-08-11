@@ -281,9 +281,9 @@ const RiskAndRebalance = () => {
 						</div>
 
 						{!requested && !loading && (
-							<div style={{ color: "#cbd5e1", marginTop: 12 }}>
-								우측 상단 버튼으로 분석을 실행하세요. <br />
-								1~5분 정도 소요됩니다.
+							<div style={{ color: "#cbd5e1", marginTop: 12, lineHeight: 1.5 }}>
+								우측 상단 버튼으로 리스크 리밸런싱 제안을 받아보세요. <br />
+								1~3분 정도 소요됩니다.
 							</div>
 						)}
 						{requested && items.length === 0 && !loading && (
@@ -544,9 +544,9 @@ const RiskAndRebalance = () => {
 						)}
 
 						{!rebalanceLoading && !rebalanceReady && !rebalanceError && (
-							<div style={{ color: "#cbd5e1", marginTop: 12 }}>
-								우측 상단 버튼으로 리밸런싱 제안을 받아보세요. <br />
-								1~5분 정도 소요됩니다.
+							<div style={{ color: "#cbd5e1", marginTop: 12, lineHeight: 1.5 }}>
+								우측 상단 버튼으로 위험 신호를 감지해 보세요. <br />
+								1~3분 정도 소요됩니다.
 							</div>
 						)}
 					</div>
