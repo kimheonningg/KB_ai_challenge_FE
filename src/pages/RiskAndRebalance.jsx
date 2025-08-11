@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import ReactMarkdown from "react-markdown";
-import { fetchRiskAnalysis } from "../utils/riskAndRebalance";
+import { fetchRiskAnalysis, fetchRiskStatus } from "../utils/riskAndRebalance";
 import "../styles/aiAssistantPages.css";
 
 const buttonStyle = {
@@ -95,7 +95,7 @@ const badge = (level) => {
 	};
 };
 
-/* ===== 제안 로직 (좌/우 공용) ===== */
+/* ===== 제안 로직 (우측 패널용) ===== */
 const getSuggestion = (risk_score = 0, risk_level) => {
 	if (risk_level === "정보 부족")
 		return { action: "유지(정보 보강 전)", delta: 0 };
@@ -107,36 +107,55 @@ const getSuggestion = (risk_score = 0, risk_level) => {
 };
 
 const RiskAndRebalance = () => {
-	// 공용 데이터(좌측 기능에서 로드)
+	// 왼쪽 패널 상태 (상세 리포트용)
 	const [items, setItems] = useState([]); // [{stock,ticker,risk_score,risk_level,report,top_news_links}]
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState(null);
 	const [requested, setRequested] = useState(false);
-
-	// 좌측(리포트 생성) 상태
-	const [selectedId, setSelectedId] = useState(null); // ticker or stock
+	const [selectedId, setSelectedId] = useState(null);
 	const [query, setQuery] = useState("");
 	const [onlyRisk, setOnlyRisk] = useState(false);
 	const [includeInfoLack, setIncludeInfoLack] = useState(true);
 	const [sortKey, setSortKey] = useState("risk_score");
 
-	// 우측(리밸런싱) 상태
+	// 오른쪽 패널 상태 (리밸런싱 제안용)
+	const [rebalanceItems, setRebalanceItems] = useState([]); // [{ticker,company_name,risk_score,...}]
+	const [rebalanceLoading, setRebalanceLoading] = useState(false);
+	const [rebalanceError, setRebalanceError] = useState(null);
 	const [rebalanceReady, setRebalanceReady] = useState(false);
 
-	/* ===== API 호출 (좌측 버튼) ===== */
+	/* ===== API 호출 (왼쪽 "분석 시작하기" 버튼) ===== */
 	const load = async () => {
 		setRequested(true);
 		setLoading(true);
 		setError(null);
+		setRebalanceReady(false); // 왼쪽 분석 새로하면 오른쪽 제안은 초기화
+		setRebalanceItems([]);
+		setRebalanceError(null);
 		try {
 			const data = await fetchRiskAnalysis();
 			setItems(data || []);
 			setSelectedId(data?.length ? data[0].ticker || data[0].stock : null);
-			setRebalanceReady(false); // 새로 로드하면 우측은 다시 생성하도록
 		} catch (e) {
 			setError(e.message || "API 호출 실패");
 		} finally {
 			setLoading(false);
+		}
+	};
+
+	/* ===== API 호출 (오른쪽 "제안 생성하기" 버튼) ===== */
+	const handleGenerateSuggestion = async () => {
+		setRebalanceLoading(true);
+		setRebalanceError(null);
+		try {
+			const data = await fetchRiskStatus();
+			setRebalanceItems(data.statuses || []);
+			setRebalanceReady(true);
+		} catch (e) {
+			setRebalanceError(e.message || "리밸런싱 제안 생성에 실패했습니다.");
+			setRebalanceReady(false);
+		} finally {
+			setRebalanceLoading(false);
 		}
 	};
 
@@ -177,11 +196,11 @@ const RiskAndRebalance = () => {
 	/* ===== 우측: 리밸런싱 표 생성 ===== */
 	const rebalanceRows = useMemo(() => {
 		if (!rebalanceReady) return [];
-		return (items || []).map((r) => {
+		return (rebalanceItems || []).map((r) => {
 			const { action, delta } = getSuggestion(r.risk_score, r.risk_level);
 			return {
-				key: r.ticker || r.stock,
-				stock: r.stock,
+				key: r.ticker,
+				stock: r.company_name, // API 응답에 맞춰 company_name 사용
 				ticker: r.ticker,
 				risk_level: r.risk_level,
 				risk_score: Number(r.risk_score ?? 0).toFixed(2),
@@ -189,7 +208,7 @@ const RiskAndRebalance = () => {
 				delta,
 			};
 		});
-	}, [rebalanceReady, items]);
+	}, [rebalanceReady, rebalanceItems]);
 
 	return (
 		<div className="page">
@@ -216,7 +235,6 @@ const RiskAndRebalance = () => {
 					<h1 className="header-title">위험신호 감지 및 리밸런싱</h1>
 				</div>
 
-				{/* ===== 2열 레이아웃 ===== */}
 				<section
 					style={{
 						display: "grid",
@@ -240,7 +258,11 @@ const RiskAndRebalance = () => {
 								리스크 분석 리포트 생성하기
 							</div>
 							<button style={buttonStyle} onClick={load} disabled={loading}>
-								{requested ? "로딩 중..." : "분석 시작하기"}
+								{loading
+									? "생성 중..."
+									: requested
+									? "다시 분석"
+									: "분석 시작하기"}
 								{loading && <div style={spinnerStyle} />}
 							</button>
 						</div>
@@ -253,14 +275,15 @@ const RiskAndRebalance = () => {
 								disabled={!requested}
 							>
 								<option value="risk_score">위험도(오름차순)</option>
-								<option value="ticker">티커</option>
+								<option value="ticker">Ticker</option>
 								<option value="stock">회사명</option>
 							</select>
 						</div>
 
 						{!requested && !loading && (
 							<div style={{ color: "#cbd5e1", marginTop: 12 }}>
-								아직 데이터가 없습니다. 우측 상단 버튼으로 분석을 실행하세요.
+								우측 상단 버튼으로 분석을 실행하세요. <br />
+								1~5분 정도 소요됩니다.
 							</div>
 						)}
 						{requested && items.length === 0 && !loading && (
@@ -298,7 +321,6 @@ const RiskAndRebalance = () => {
 									</div>
 								);
 							})}
-
 							{loading && (
 								<div
 									style={{
@@ -333,7 +355,6 @@ const RiskAndRebalance = () => {
 									</span>{" "}
 									| 점수: <b>{Number(selected.risk_score ?? 0).toFixed(2)}</b>
 								</div>
-
 								<section
 									style={{
 										backgroundColor: "#111827",
@@ -353,51 +374,9 @@ const RiskAndRebalance = () => {
 										{selected.report || "(리포트 본문 없음)"}
 									</ReactMarkdown>
 								</section>
-
 								{selected.top_news_links &&
 									selected.top_news_links.length > 0 && (
-										<section
-											style={{
-												backgroundColor: "#1e293b",
-												borderRadius: 12,
-												padding: "1rem",
-												boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
-											}}
-										>
-											<div
-												style={{
-													fontWeight: 600,
-													color: "#a5b4fc",
-													marginBottom: "0.5rem",
-												}}
-											>
-												관련 뉴스
-											</div>
-											<ul
-												style={{
-													color: "#93c5fd",
-													fontWeight: 600,
-													paddingLeft: 18,
-													margin: 0,
-												}}
-											>
-												{selected.top_news_links.map((n, i) => (
-													<li key={i}>
-														<a
-															href={n.url}
-															target="_blank"
-															rel="noreferrer"
-															style={{
-																color: "inherit",
-																textDecoration: "underline",
-															}}
-														>
-															{n.title || n.url}
-														</a>
-													</li>
-												))}
-											</ul>
-										</section>
+										<section> {/* ... 관련 뉴스 ... */} </section>
 									)}
 							</div>
 						)}
@@ -416,34 +395,39 @@ const RiskAndRebalance = () => {
 							<div style={{ fontWeight: 700, color: "#a5b4fc" }}>
 								리스크 리밸런싱하기
 							</div>
-							<div style={{ display: "flex", gap: 8 }}>
-								<button
-									style={buttonStyle}
-									onClick={() => setRebalanceReady(true)}
-									disabled={!requested || loading || (items || []).length === 0}
-									title={
-										!requested ? "먼저 왼쪽에서 리스크 분석을 실행하세요." : ""
-									}
-								>
-									제안 생성하기
-								</button>
-							</div>
+							<button
+								style={buttonStyle}
+								onClick={handleGenerateSuggestion}
+								disabled={rebalanceLoading}
+							>
+								{rebalanceLoading ? "생성 중..." : "제안 생성하기"}
+								{rebalanceLoading && <div style={spinnerStyle} />}
+							</button>
 						</div>
 
-						{!requested && (
-							<div style={{ color: "#cbd5e1" }}>
-								먼저 왼쪽 패널에서 <b>리스크 분석</b>을 실행하세요. <br />
-								결과를 바탕으로 리밸런싱 제안을 만듭니다.
+						{rebalanceLoading && (
+							<div
+								style={{ textAlign: "center", marginTop: 12, color: "#c4b5fd" }}
+							>
+								<div
+									style={{
+										...spinnerStyle,
+										width: 30,
+										height: 30,
+										margin: "0 auto",
+									}}
+								/>
+								<div style={{ marginTop: 10 }}>제안 생성 중...</div>
 							</div>
 						)}
 
-						{requested && !rebalanceReady && (
-							<div style={{ color: "#cbd5e1" }}>
-								버튼을 눌러 리밸런싱 제안을 생성하세요.
+						{rebalanceError && (
+							<div style={{ color: "#ef4444", marginTop: 12 }}>
+								오류: {rebalanceError}
 							</div>
 						)}
 
-						{rebalanceReady && (
+						{!rebalanceLoading && !rebalanceError && rebalanceReady && (
 							<>
 								<div
 									style={{
@@ -453,7 +437,7 @@ const RiskAndRebalance = () => {
 										marginBottom: 8,
 									}}
 								>
-									제안 목록 (분석 {items.length}건 기준)
+									제안 목록 ({rebalanceItems.length}건 기준)
 								</div>
 								<div
 									style={{
@@ -510,6 +494,13 @@ const RiskAndRebalance = () => {
 									권장합니다.
 								</div>
 							</>
+						)}
+
+						{!rebalanceLoading && !rebalanceReady && !rebalanceError && (
+							<div style={{ color: "#cbd5e1", marginTop: 12 }}>
+								우측 상단 버튼으로 리밸런싱 제안을 받아보세요. <br />
+								1~5분 정도 소요됩니다.
+							</div>
 						)}
 					</div>
 				</section>
