@@ -3,7 +3,6 @@ import ReactMarkdown from "react-markdown";
 import { fetchDailyBriefing } from "../utils/insights";
 import "../styles/aiAssistantPages.css";
 
-/* ===== 스타일 ===== */
 const buttonStyle = {
 	padding: "0.5rem 1.2rem",
 	borderRadius: 8,
@@ -37,7 +36,6 @@ const tdStyle = {
 	verticalAlign: "top",
 };
 
-/* ===== 작은 컴포넌트 ===== */
 const Box = ({ children, style }) => (
 	<div
 		style={{
@@ -128,7 +126,6 @@ const CardMover = ({ title, mover, tone }) => (
 	</Box>
 );
 
-/* ===== 메인 ===== */
 const Insights = () => {
 	const [loading, setLoading] = useState(false);
 	const [err, setErr] = useState("");
@@ -150,7 +147,6 @@ const Insights = () => {
 
 	return (
 		<div className="page">
-			{/* back button */}
 			<span
 				className="material-icons"
 				style={{
@@ -191,10 +187,19 @@ const Insights = () => {
 							>
 								오늘의 브리핑 받기
 							</div>
-							<div style={{ color: "#cbd5e1", fontSize: 14 }}>
-								{data?.briefing_date
-									? `브리핑 날짜: ${data.briefing_date}`
-									: "우측의 버튼을 클릭하여 브리핑을 받아보세요."}
+							<div style={{ color: "#cbd5e1", fontSize: 14, lineHeight: 1.5 }}>
+								{data?.briefing_date ? (
+									`브리핑 날짜: ${data.briefing_date}`
+								) : (
+									<>
+										곧 있을 큰 경제/금융 이벤트에 대한 정보를 얻어 내 주식에
+										대한 조언을 얻고 싶다면?
+										<br />
+										또 최근의 주식 현황에 대해 궁금하다면?
+										<br />
+										우측의 버튼을 클릭하여 브리핑을 받아보세요.
+									</>
+								)}
 							</div>
 						</div>
 						<button
@@ -217,7 +222,6 @@ const Insights = () => {
 
 					{data && (
 						<div style={{ marginTop: 16, display: "grid", gap: 16 }}>
-							{/* 경제/금융 이벤트 + 해설(Markdown) */}
 							{(data.economic_events?.length || 0) > 0 && (
 								<Box>
 									<div
@@ -293,6 +297,39 @@ const Insights = () => {
 							</div>
 						</div>
 					)}
+				</section>
+				<section style={{ ...panelCard, marginTop: 20 }}>
+					<div
+						style={{
+							display: "flex",
+							justifyContent: "space-between",
+							alignItems: "center",
+							gap: 12,
+						}}
+					>
+						<div>
+							<div
+								style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: 10 }}
+							>
+								타임 머신 실험하기
+							</div>
+							<div style={{ color: "#cbd5e1", fontSize: 14, lineHeight: 1.5 }}>
+								<>
+									만약 내가 과거에 다른 주식을 샀다면?
+									<br />
+									우측의 버튼을 클릭하여 브리핑을 받아보세요.
+								</>
+							</div>
+						</div>
+						<button onClick={() => {}} style={buttonStyle} disabled={loading}>
+							{loading ? (
+								<span style={spinnerStyle} />
+							) : (
+								<span className="material-icons">auto_awesome</span>
+							)}
+							<span>{loading ? "불러오는 중..." : "실험하기"}</span>
+						</button>
+					</div>
 				</section>
 			</div>
 

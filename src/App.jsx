@@ -9,7 +9,7 @@ import AddPortfolio from "./pages/AddPortfolio";
 import Reports from "./pages/Reports";
 import StockSimulation from "./pages/StockSimulation";
 import RiskAndRebalance from "./pages/RiskAndRebalance";
-import Insights from "./pages/Insigts";
+import Insights from "./pages/Insights";
 
 import "./App.css";
 
