@@ -19,7 +19,7 @@ const ChatMessage = ({ from, text }) => {
 				borderTopLeftRadius: isUser ? 18 : 4,
 				borderTopRightRadius: isUser ? 4 : 18,
 				fontSize: 14,
-				whiteSpace: "pre-line",
+				lineHeight: 1.5,
 				wordBreak: "break-word",
 			}}
 		>

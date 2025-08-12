@@ -2,6 +2,37 @@ import React from "react";
 
 import "../../styles/aiAssistantPageComponents.css";
 
+const headerStyle = {
+	fontWeight: 700,
+	fontSize: 18,
+	display: "flex",
+	alignItems: "center",
+	gap: 10,
+	marginBottom: 8,
+	color: "#333",
+};
+
+const iconInner = {
+	fontSize: "1.3rem",
+	backgroundColor: "#e2e2e2",
+	borderRadius: 4,
+	padding: "5px 10px",
+	fontWeight: "700",
+	color: "#444",
+	display: "inline-flex",
+	alignItems: "center",
+	justifyContent: "center",
+	width: 22,
+	height: 22,
+	lineHeight: 1,
+};
+
+const gridStyle = {
+	display: "grid",
+	gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+	gap: 16,
+};
+
 const PortfolioSummary = ({ totalAsset, dailyReturn, yearlyReturn }) => (
 	<div
 		style={{
@@ -135,31 +166,14 @@ const PortfolioAllocation = ({ allocation }) => (
 
 const PortfolioSummarySection = ({ data }) => (
 	<section className="left-side-container">
-		<h2
-			style={{
-				fontWeight: "700",
-				fontSize: 18,
-				marginBottom: 24,
-				display: "flex",
-				alignItems: "center",
-				gap: 8,
-			}}
-		>
-			<span
-				style={{
-					backgroundColor: "#e2e2e2",
-					borderRadius: 4,
-					padding: "0 6px",
-					fontWeight: "700",
-					fontSize: 14,
-					color: "#444",
-				}}
-			>
-				!
-			</span>{" "}
+		<h3 style={headerStyle}>
+			<span className="material-icon-badge">
+				<span className="material-icons" style={iconInner}>
+					donut_large
+				</span>
+			</span>
 			포트폴리오 현황
-		</h2>
-
+		</h3>
 		<PortfolioSummary
 			totalAsset={data.totalAsset}
 			dailyReturn={data.dailyReturn}
