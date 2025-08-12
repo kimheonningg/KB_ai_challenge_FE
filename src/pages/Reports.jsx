@@ -456,7 +456,7 @@ const Reports = () => {
 						>
 							<ReactMarkdown>{selectedReport.report_content}</ReactMarkdown>
 						</section>
-
+{/* 
 						{selectedReport.risk_factors &&
 							selectedReport.risk_factors.length > 0 && (
 								<section
@@ -523,7 +523,7 @@ const Reports = () => {
 										))}
 									</ul>
 								</section>
-							)}
+							)} */}
 					</div>
 				)}
 			</div>
