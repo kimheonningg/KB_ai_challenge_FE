@@ -71,6 +71,102 @@ const panelCard = {
 	boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
 };
 
+const box = {
+	background: "#0b1222",
+	border: "1px solid #223049",
+	borderRadius: 10,
+	padding: "12px 14px",
+};
+
+const sectionTitle = {
+	display: "flex",
+	alignItems: "center",
+	gap: 8,
+	fontWeight: 800,
+	fontSize: 14,
+	color: "#93c5fd",
+	marginBottom: 8,
+};
+
+const ReportView = ({ report }) => {
+	if (!report) return <div>(리포트 본문이 없습니다.)</div>;
+
+	// 문자열이면 기존 Markdown 렌더링
+	if (typeof report === "string") {
+		return <ReactMarkdown>{report}</ReactMarkdown>;
+	}
+
+	// 객체(JSON) 렌더링
+	const {
+		summary,
+		detailed_analysis: detailed,
+		recommendations = [],
+	} = report || {};
+
+	return (
+		<div style={{ display: "grid", gap: 12 }}>
+			{/* 요약 */}
+			{summary && (
+				<div style={box}>
+					<div style={sectionTitle}>
+						<span className="material-icons" style={{ fontSize: 18 }}>
+							insights
+						</span>
+						요약
+					</div>
+					<div style={{ color: "#e5e7eb" }}>{summary}</div>
+				</div>
+			)}
+
+			{/* 상세 분석 */}
+			{detailed && (
+				<div style={box}>
+					<div style={sectionTitle}>
+						<span className="material-icons" style={{ fontSize: 18 }}>
+							analytics
+						</span>
+						상세 분석
+					</div>
+					<div style={{ color: "#e5e7eb" }}>{detailed}</div>
+				</div>
+			)}
+
+			{/* 추천 사항 */}
+			{Array.isArray(recommendations) && recommendations.length > 0 && (
+				<div style={box}>
+					<div style={sectionTitle}>
+						<span className="material-icons" style={{ fontSize: 18 }}>
+							playlist_add_check
+						</span>
+						추천 사항
+					</div>
+					<ul
+						style={{
+							margin: 0,
+							paddingLeft: 18,
+							color: "#bbf7d0",
+							fontWeight: 600,
+						}}
+					>
+						{recommendations.map((rec, i) => (
+							<li key={i} style={{ marginBottom: 6, lineHeight: 1.6 }}>
+								{rec}
+							</li>
+						))}
+					</ul>
+				</div>
+			)}
+
+			{/* 비어있을 때 */}
+			{!summary &&
+				!detailed &&
+				(!recommendations || recommendations.length === 0) && (
+					<div>(리포트 본문이 없습니다.)</div>
+				)}
+		</div>
+	);
+};
+
 /* ===== 위험 배지/임계 ===== */
 const RISK_THRESHOLD = -1;
 const tones = {
@@ -136,7 +232,7 @@ const RiskAndRebalance = () => {
 			const data = await fetchRiskAnalysis();
 			const norm = (data || []).map((it) => ({
 				...it,
-				report: toMdString(it.report),
+				report: it.report,
 			}));
 			setItems(norm);
 			setSelectedId(data?.length ? data[0].ticker || data[0].stock : null);
@@ -366,8 +462,8 @@ const RiskAndRebalance = () => {
 								<div
 									style={{ fontWeight: 600, color: "#93c5fd", marginBottom: 8 }}
 								>
-									선택된 종목: <strong>{selected.stock}</strong> (
-									{selected.ticker}) | 위험도:{" "}
+									종목: <strong>{selected.stock}</strong> ({selected.ticker}) |
+									위험도:{" "}
 									<span style={badge(selected.risk_level)}>
 										{selected.risk_level}
 									</span>{" "}
@@ -388,9 +484,7 @@ const RiskAndRebalance = () => {
 										marginBottom: "1.0rem",
 									}}
 								>
-									<ReactMarkdown>
-										{toMdString(selected?.report) || "(리포트 본문 없음)"}
-									</ReactMarkdown>
+									<ReportView report={selected?.report} />
 								</section>
 								{selected.top_news_links &&
 									selected.top_news_links.length > 0 && (
