@@ -369,7 +369,7 @@ const AddPortfolio = () => {
 								onChange={handleChange}
 								style={inputStyle}
 							/>
-							<label style={labelStyle}>보유 단위</label>
+							{/* <label style={labelStyle}>보유 단위</label>
 							<input
 								type="number"
 								name="units"
@@ -384,7 +384,7 @@ const AddPortfolio = () => {
 								value={formData.purchasePricePerUnit}
 								onChange={handleChange}
 								style={inputStyle}
-							/>
+							/> */}
 						</>
 					)}
 

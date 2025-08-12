@@ -421,7 +421,7 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 							{fundCode || "-"}
 						</div>
 					</div>
-					<div style={fieldRowStyle}>
+					{/* <div style={fieldRowStyle}>
 						<div>
 							<span style={labelStyle}>보유 단위: </span>
 							{units || "-"}
@@ -433,7 +433,7 @@ const PortfolioCard = ({ portfolio, onDelete }) => {
 								: "-"}{" "}
 							{currency}
 						</div>
-					</div>
+					</div> */}
 				</>
 			)}
 		</div>
