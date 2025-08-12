@@ -12,8 +12,8 @@ const styles = {
 		fontFamily: "'Inter', sans-serif",
 	},
 	title: {
-		fontSize: "24px",
-		color: "#ffffff",
+		fontSize: "20px",
+		color: "#cccccc",
 		margin: "0",
 		fontWeight: "500",
 		marginTop: "10px",
@@ -46,13 +46,12 @@ const styles = {
 	},
 	brand: {
 		fontWeight: 800,
-		fontSize: 36,
+		fontSize: 38,
 		letterSpacing: 0.3,
 		color: "#fff",
-		marginRight: "10px",
 	},
 	brandHighlight: {
-		fontSize: 36,
+		fontSize: 40,
 		color: "#7c3aed",
 	},
 };
@@ -93,10 +92,10 @@ const Header = ({ activeTab, setActiveTab }) => (
 			}}
 		>
 			<div style={styles.brand}>
-				fine<span style={styles.brandHighlight}>Teacher</span>:
+				fine<span style={styles.brandHighlight}>Teacher</span>
 			</div>
-			<h1 style={styles.title}>금융·경제 AI 멘토 플랫폼</h1>
 		</div>
+		<h1 style={styles.title}>금융·경제 AI 멘토 플랫폼</h1>
 		<p style={styles.subtitle}>
 			KB Future Finance A.I. Challenge
 			<span style={styles.teamBadge}>Team 피츄⚡</span>
