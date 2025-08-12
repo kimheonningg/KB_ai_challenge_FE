@@ -287,59 +287,108 @@ const Reports = () => {
 						<section
 							style={{
 								backgroundColor: "#1e293b",
-								borderRadius: 12,
+								borderRadius: 16,
 								padding: "1.5rem 2rem",
 								marginBottom: "1.5rem",
-								boxShadow: "0 4px 10px rgba(0,0,0,0.2)",
+								boxShadow: "0 6px 16px rgba(0,0,0,0.25)",
 							}}
 						>
 							<div
 								style={{
-									fontWeight: "600",
+									fontWeight: "700",
+									fontSize: 18,
 									color: "#a5b4fc",
-									marginBottom: "0.5rem",
+									marginBottom: "1rem",
 								}}
 							>
 								포트폴리오 요약
 							</div>
-							<div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-								<div>
+
+							<div
+								style={{
+									display: "grid",
+									gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+									gap: "1rem",
+								}}
+							>
+								{/* 총 자산 수 */}
+								<div
+									style={{
+										backgroundColor: "#273549",
+										padding: "1rem",
+										borderRadius: 12,
+										textAlign: "center",
+									}}
+								>
 									<div
 										style={{
-											fontSize: 18,
+											fontSize: 22,
 											fontWeight: "700",
 											color: "#f1f5f9",
 										}}
 									>
-										{selectedReport.portfolio_summary.total_assets}
+										{selectedReport.portfolio_summary.total_assets ?? 0}
 									</div>
-									<div>총 자산 수</div>
-								</div>
-								<div>
-									<div
-										style={{
-											fontSize: 18,
-											fontWeight: "700",
-											color: "#f1f5f9",
-										}}
-									>
-										주식: {selectedReport.portfolio_summary.asset_types.stock}
+									<div style={{ fontSize: 14, color: "#cbd5e1" }}>
+										총 자산 수
 									</div>
-									<div>주식 자산 개수</div>
 								</div>
-								<div>
+
+								{/* 주식 */}
+								<div
+									style={{
+										backgroundColor: "#273549",
+										padding: "1rem",
+										borderRadius: 12,
+										textAlign: "center",
+									}}
+								>
 									<div
 										style={{
-											fontSize: 18,
+											fontSize: 22,
 											fontWeight: "700",
 											color: "#f1f5f9",
 										}}
 									>
-										채권: {selectedReport.portfolio_summary.asset_types.bond}
+										{selectedReport.portfolio_summary.asset_types.stock ?? 0}
 									</div>
-									<div>채권 자산 개수</div>
+									<div style={{ fontSize: 14, color: "#cbd5e1" }}>
+										주식 자산 개수
+									</div>
 								</div>
-								<div>
+
+								{/* 채권 */}
+								<div
+									style={{
+										backgroundColor: "#273549",
+										padding: "1rem",
+										borderRadius: 12,
+										textAlign: "center",
+									}}
+								>
+									<div
+										style={{
+											fontSize: 22,
+											fontWeight: "700",
+											color: "#f1f5f9",
+										}}
+									>
+										{selectedReport.portfolio_summary.asset_types.bond ?? 0}
+									</div>
+									<div style={{ fontSize: 14, color: "#cbd5e1" }}>
+										채권 자산 개수
+									</div>
+								</div>
+
+								{/* 다양성 점수 */}
+								<div
+									style={{
+										backgroundColor: "#273549",
+										padding: "1rem",
+										borderRadius: 12,
+										textAlign: "center",
+									}}
+								>
 									<div
 										style={{
 											fontSize: 18,
@@ -347,26 +396,25 @@ const Reports = () => {
 											color: "#f1f5f9",
 										}}
 									>
-										다양성 점수:{" "}
+										다양성:{" "}
 										{(
 											selectedReport.portfolio_summary.diversification_score *
 											100
 										).toFixed(1)}
 										%
 									</div>
-									<div>
+									<div style={{ fontSize: 14, color: "#cbd5e1", marginTop: 6 }}>
 										자산 다양화{" "}
 										{selectedReport.portfolio_summary.is_diversified ? (
 											<span
 												style={{
-													display: "inline-block",
 													backgroundColor: "#4ade80",
 													color: "#064e3b",
-													padding: "0.15rem 0.5rem",
-													borderRadius: 8,
+													padding: "0.2rem 0.5rem",
+													borderRadius: 6,
 													fontWeight: "600",
 													fontSize: 12,
-													marginLeft: 8,
+													marginLeft: 6,
 												}}
 											>
 												좋음
@@ -374,14 +422,13 @@ const Reports = () => {
 										) : (
 											<span
 												style={{
-													display: "inline-block",
 													backgroundColor: "#f87171",
 													color: "#7f1d1d",
-													padding: "0.15rem 0.5rem",
-													borderRadius: 8,
+													padding: "0.2rem 0.5rem",
+													borderRadius: 6,
 													fontWeight: "600",
 													fontSize: 12,
-													marginLeft: 8,
+													marginLeft: 6,
 												}}
 											>
 												낮음
@@ -430,7 +477,13 @@ const Reports = () => {
 									>
 										주요 리스크 요인
 									</div>
-									<ul style={{ color: "#f87171", fontWeight: "600" }}>
+									<ul
+										style={{
+											color: "#f87171",
+											fontWeight: "600",
+											lineHeight: 1.8,
+										}}
+									>
 										{selectedReport.risk_factors.map((risk, idx) => (
 											<li key={idx}>{risk}</li>
 										))}
@@ -458,7 +511,13 @@ const Reports = () => {
 									>
 										추천 사항
 									</div>
-									<ul style={{ color: "#4ade80", fontWeight: "600" }}>
+									<ul
+										style={{
+											color: "#4ade80",
+											fontWeight: "600",
+											lineHeight: 1.8,
+										}}
+									>
 										{selectedReport.recommendations.map((rec, idx) => (
 											<li key={idx}>{rec}</li>
 										))}
