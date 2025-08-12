@@ -134,7 +134,11 @@ const RiskAndRebalance = () => {
 		setRebalanceError(null);
 		try {
 			const data = await fetchRiskAnalysis();
-			setItems(data || []);
+			const norm = (data || []).map((it) => ({
+				...it,
+				report: toMdString(it.report),
+			}));
+			setItems(norm);
 			setSelectedId(data?.length ? data[0].ticker || data[0].stock : null);
 		} catch (e) {
 			setError(e.message || "API 호출 실패");
@@ -210,6 +214,20 @@ const RiskAndRebalance = () => {
 			};
 		});
 	}, [rebalanceReady, rebalanceItems]);
+
+	const toMdString = (val) => {
+		if (typeof val === "string") return val;
+		if (Array.isArray(val)) return val.map(toMdString).join("\n");
+		if (val && typeof val === "object") {
+			if (typeof val.content === "string") return val.content; // 흔한 케이스
+			try {
+				return JSON.stringify(val, null, 2);
+			} catch {
+				return String(val);
+			}
+		}
+		return String(val ?? "");
+	};
 
 	return (
 		<div className="page">
@@ -371,7 +389,7 @@ const RiskAndRebalance = () => {
 									}}
 								>
 									<ReactMarkdown>
-										{selected.report || "(리포트 본문 없음)"}
+										{toMdString(selected?.report) || "(리포트 본문 없음)"}
 									</ReactMarkdown>
 								</section>
 								{selected.top_news_links &&
