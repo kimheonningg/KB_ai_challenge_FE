@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { sendChatMessage } from "../../utils/chatbot";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import "../../styles/aiAssistantPageComponents.css";
 
@@ -21,7 +23,20 @@ const ChatMessage = ({ from, text }) => {
 				wordBreak: "break-word",
 			}}
 		>
-			{text}
+			{isUser ? (
+				<span style={{ whiteSpace: "pre-line" }}>{text}</span>
+			) : (
+				<ReactMarkdown
+					remarkPlugins={[remarkGfm]}
+					components={{
+						a: ({ node, ...props }) => (
+							<a {...props} target="_blank" rel="noreferrer" />
+						),
+					}}
+				>
+					{text}
+				</ReactMarkdown>
+			)}
 		</div>
 	);
 };
