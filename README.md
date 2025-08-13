@@ -240,34 +240,9 @@ npm run build -- --reset-cache
 - [React 커뮤니티](https://reactjs.org/community/support.html)
 - [Stack Overflow](https://stackoverflow.com/questions/tagged/react)
 
-## 기여 방법
-
-### **개발 환경 설정**
-1. 프로젝트 포크
-2. 기능 브랜치 생성
-3. 코드 작성 및 테스트
-4. Pull Request 생성
-
-### **코딩 컨벤션**
-- ESLint 규칙 준수
-- Prettier 포맷팅 적용
-- 의미있는 커밋 메시지 작성
-
-## 라이선스
-
-이 프로젝트는 ISC 라이선스 하에 배포됩니다.
-
 ## 팀원
 
-- **개발자**: [개발자 이름]
-- **디자이너**: [디자이너 이름]
-- **프로젝트 매니저**: [PM 이름]
-
-## 연락처
-
-- **이메일**: [contact@example.com]
-- **GitHub**: [https://github.com/username]
-- **프로젝트 이슈**: [GitHub Issues 페이지]
+- **개발자**: [공지환, 김희원, 박준호]
 
 ## 업데이트 로그
 
@@ -279,4 +254,4 @@ npm run build -- --reset-cache
 
 ---
 
-**© 2024 KB AI Challenge Frontend Team. All rights reserved.**
+**© 2025 KB AI Challenge Frontend Team. All rights reserved.**
