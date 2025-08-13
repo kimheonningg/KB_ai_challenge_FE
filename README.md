@@ -201,18 +201,6 @@ ALPHAVANTAGE_API_KEY=your_api_key_here
 - HTTPS 통신 강제
 - XSS 및 CSRF 방어
 
-## 브라우저 지원
-
-### **지원 브라우저**
-- **Chrome**: 90+
-- **Firefox**: 88+
-- **Safari**: 14+
-- **Edge**: 90+
-
-### **지원하지 않는 브라우저**
-- Internet Explorer (모든 버전)
-- 구형 모바일 브라우저
-
 ## 문제 해결
 
 ### **일반적인 문제들**
