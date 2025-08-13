@@ -157,13 +157,8 @@ npm run build     # 프로덕션용 번들 생성
 
 ```env
 # API 키 설정
-REACT_APP_ALPHA_VANTAGE_API_KEY=your_api_key_here
+ALPHAVANTAGE_API_KEY=your_api_key_here
 
-# 백엔드 API URL
-REACT_APP_API_BASE_URL=http://localhost:8000
-
-# 기타 설정
-REACT_APP_ENVIRONMENT=development
 ```
 
 ## 주요 API 연동
